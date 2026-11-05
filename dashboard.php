@@ -13,6 +13,14 @@ $moves = qa($pdo, 'SELECT sm.*, p.name pname, w.name wname FROM stock_movements 
 $alertsCount = count($low) + count($out);
 include __DIR__ . '/includes/header.php'; ?>
 <?php if ($alertsCount): ?><div class="alert alert-warning"><strong><?= $alertsCount ?> stock alerts:</strong> <?= count($low) ?> low-stock, <?= count($out) ?> out-of-stock. <a href="alerts.php">View alerts &amp; reorder suggestions</a></div><?php endif; ?>
+<?php $__inPct = $totalProducts > 0 ? (int)round((($totalProducts - $alertsCount) / $totalProducts) * 100) : 100; $__ring = number_format($__inPct / 100 * 301.6, 1); ?>
+<section class="hero"><div class="row align-items-center g-3">
+<div class="col-lg-5"><h2>Warehouse command centre</h2><p class="mb-3">Real-time stock health across every warehouse — products, movements, purchase and sales orders at a glance.</p>
+<div class="gauge-card"><div class="gauge"><svg width="118" height="118" viewBox="0 0 118 118"><circle cx="59" cy="59" r="48" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="11"/><circle cx="59" cy="59" r="48" fill="none" stroke="#10b981" stroke-width="11" stroke-linecap="round" stroke-dasharray="<?= $__ring ?> 301.6"/></svg><div class="gauge-val"><b><?= $__inPct ?>%</b><span>In stock</span></div></div>
+<div><div class="fw-bold text-white"><?= $totalProducts - $alertsCount ?> of <?= $totalProducts ?> products healthy</div><div class="small" style="color:#9fe8cf"><?= count($low) ?> low-stock · <?= count($out) ?> out-of-stock · stock value <?= money($stockValue) ?></div>
+<div class="mt-2 d-flex gap-2"><a class="btn btn-primary btn-sm" href="stock.php"><i class="bi bi-arrow-left-right"></i> New movement</a><a class="btn btn-outline-light btn-sm" href="products.php"><i class="bi bi-box-seam"></i> Products</a></div></div></div></div>
+<div class="col-lg-7 text-center"><img class="hero-img" src="assets/img/hero.svg" alt="Warehouse illustration" loading="lazy"></div>
+</div></section>
 <div class="row g-3">
 <?php foreach ([['Total products',$totalProducts,'bi-box-seam'],['Total stock qty',$totalStock,'bi-boxes'],['Stock value',money($stockValue),'bi-cash-stack'],['Low stock',count($low),'bi-exclamation-triangle'],['Out of stock',count($out),'bi-x-circle'],['Suppliers',$suppliers,'bi-truck'],['Open purchase orders',$openPO,'bi-cart-plus'],['Open sales orders',$openSO,'bi-receipt']] as [$l,$v,$i]): ?>
 <div class="col-md-3 col-xl-3"><div class="card stat-card p-3"><i class="bi <?= $i ?> fs-4 text-primary"></i><div class="fs-4 fw-bold"><?= e((string)$v) ?></div><div class="text-muted small"><?= e($l) ?></div></div></div><?php endforeach; ?>

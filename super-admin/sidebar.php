@@ -1,6 +1,7 @@
 <nav class="sidebar d-flex flex-column p-3">
-<a class="brand text-white text-decoration-none fs-5 fw-bold mb-4" href="index.php"><i class="bi bi-shield-lock"></i> Super Admin</a>
+<a class="brand text-white text-decoration-none fs-5 fw-bold mb-4" href="index.php"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5 21 7.5v9l-9 5-9-5v-9l9-5Z" stroke="#fff" stroke-width="1.8"/><path d="M12 8v5m0 3.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Super Admin</span></a>
 <?php foreach([['index.php','Platform','bi-speedometer2'],['tenants.php','Tenants','bi-buildings'],['plans.php','Plans','bi-layers'],['subscriptions.php','Subscriptions','bi-credit-card'],['coupons.php','Coupons','bi-ticket-percent'],['tickets.php','Support Tickets','bi-life-preserver'],['announcements.php','Announcements','bi-megaphone'],['settings.php','Settings','bi-gear']] as [$f,$l,$i]): ?>
-<a class="nav-link <?= ($active??'')===$l?'active':'' ?>" href="<?= $f ?>"><i class="bi <?= $i ?>"></i> <?= $l ?></a><?php endforeach; ?>
-<div class="mt-auto small text-white-50"><?= e(current_user()['name'] ?? '') ?></div>
-<a class="nav-link" href="../auth/logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></nav>
+<a class="nav-link <?= ($active??'')===$l?'active':'' ?>" href="<?= $f ?>"><i class="bi <?= $i ?>"></i> <span class="lbl"><?= $l ?></span></a><?php endforeach; ?>
+<?php $__u = trim((string)(current_user()['name'] ?? 'S')); $__p = preg_split('/\s+/', $__u); $__ini = strtoupper(mb_substr($__p[0] ?? 'S', 0, 1) . (isset($__p[1]) ? mb_substr($__p[1], 0, 1) : '')); ?>
+<div class="sidebar-user"><span class="avatar sm"><?= e($__ini) ?></span><span class="who small text-white-50"><?= e(current_user()['name'] ?? '') ?></span></div>
+<a class="nav-link" href="../auth/logout.php"><i class="bi bi-box-arrow-right"></i> <span class="lbl">Logout</span></a></nav>

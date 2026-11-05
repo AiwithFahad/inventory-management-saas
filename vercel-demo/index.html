@@ -3,17 +3,57 @@
 <title>StockPro — Inventory Management SaaS (Demo)</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--brand:#0d9488} body{background:#f6f7fb} body.dark{background:#111827;color:#e5e7eb} body.dark .card{background:#1f2937;color:#e5e7eb} body.dark .table{color:#e5e7eb}
-.sidebar{width:230px;background:linear-gradient(180deg,#0f3d3e,#0d9488);min-height:100vh;position:sticky;top:0}
-.sidebar .nav-link{color:#ccfbf1;border-radius:.5rem;margin:.15rem 0;cursor:pointer}.sidebar .nav-link.active,.sidebar .nav-link:hover{background:rgba(255,255,255,.18);color:#fff}
-.stat{border:0;border-radius:1rem;box-shadow:0 8px 24px rgba(15,23,42,.07)}
-@media(max-width:768px){.sidebar{width:70px}.sidebar .nav-link{font-size:0}.sidebar .nav-link i{font-size:1.1rem}.brand{font-size:0!important}}
+:root{--navy:#0a1633;--navy2:#0f2044;--emerald:#10b981;--emerald2:#059669;--ink:#e8eefc;--muted:#93a5c4;--surface:#0d1b36;--surface2:#0a1730;--border:#1e2f52;--amber:#f59e0b;--red:#ef4444}
+body{background:#060d1f;color:var(--ink);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+body.light{--ink:#0b1526;--muted:#64748b;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;background:#eef2f7;color:var(--ink)}
+a{color:#34d399} body.light a{color:var(--emerald2)}
+.sidebar{width:236px;flex:0 0 236px;background:linear-gradient(165deg,#0a1633,#0f2044 60%,#0b2e2a 135%);min-height:100vh;position:sticky;top:0;padding:1.1rem .9rem;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:.6rem;color:#fff;font-weight:800;font-size:1.15rem}
+.brand-mark{display:inline-flex;width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#10b981,#0ea5a4);align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(16,185,129,.45)}
+.sidebar .nav-link{color:#b9c9e8;border-radius:.65rem;margin:.14rem 0;padding:.55rem .7rem;cursor:pointer;font-weight:500;display:flex;gap:.55rem;align-items:center}
+.sidebar .nav-link:hover{background:rgba(255,255,255,.09);color:#fff}
+.sidebar .nav-link.active{background:linear-gradient(90deg,rgba(16,185,129,.30),rgba(16,185,129,.08));color:#fff;box-shadow:inset 0 0 0 1px rgba(16,185,129,.35)}
+main{flex:1;min-width:0;padding:1.5rem}
+.card{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:1rem;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.stat{border:1px solid var(--border);border-radius:1rem;position:relative;overflow:hidden;height:100%}
+.stat::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,#10b981,#0ea5a4)}
+.stat .ic{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:rgba(16,185,129,.16);color:#34d399;font-size:1.15rem}
+body.light .stat .ic{color:var(--emerald2)}
+.table{color:var(--ink);--bs-table-bg:transparent;--bs-table-color:var(--ink)}
+.table th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-color:var(--border)}
+.table td{border-color:var(--border);vertical-align:middle}
+.form-control,.form-select{background:var(--surface);color:var(--ink);border-color:var(--border);border-radius:.65rem}
+.form-control:focus,.form-select:focus{border-color:var(--emerald);box-shadow:0 0 0 .25rem rgba(16,185,129,.30);background:var(--surface);color:var(--ink)}
+.btn{border-radius:.65rem;font-weight:600}.btn-primary{background:linear-gradient(135deg,#10b981,#059669);border:0;box-shadow:0 8px 18px rgba(16,185,129,.35)}
+.btn-success{background:var(--emerald2);border-color:var(--emerald2)}
+.btn-outline-light{border-color:rgba(255,255,255,.35)}
+.alert{border:0;border-radius:.85rem}.alert-info{background:rgba(56,189,248,.14);color:#bae6fd}body.light .alert-info{background:#dbeafe;color:#1e40af}
+.alert-warning{background:rgba(245,158,11,.16);color:#fcd34d}body.light .alert-warning{background:#fef3c7;color:#92400e}
+.text-muted{color:var(--muted)!important}.border-bottom{border-color:var(--border)!important}
+.hero{border-radius:1.25rem;overflow:hidden;background:linear-gradient(150deg,#0a1633,#0f2044 55%,#0b2e2a 135%);color:#eaf2ff;box-shadow:0 24px 60px rgba(0,0,0,.4);margin-bottom:1.25rem}
+.hero .hero-photo{width:100%;height:100%;min-height:190px;object-fit:cover;opacity:.92}
+.gauge-wrap{position:relative;width:190px;height:190px;margin:0 auto}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.gauge-center b{font-size:2.3rem;line-height:1}.gauge-center span{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:#9fe8cf}
+.pill{display:inline-flex;padding:.16rem .55rem;border-radius:999px;font-size:.7rem;font-weight:700}
+.pill-in{background:rgba(16,185,129,.18);color:#34d399}.pill-low{background:rgba(245,158,11,.18);color:#fbbf24}.pill-out{background:rgba(239,68,68,.18);color:#f87171}
+.stockbar{height:7px;border-radius:99px;background:var(--border);overflow:hidden;min-width:80px}
+.stockbar>i{display:block;height:100%;background:linear-gradient(90deg,#10b981,#0ea5a4)}
+.stockbar.low>i{background:linear-gradient(90deg,#f59e0b,#fbbf24)}.stockbar.out>i{background:linear-gradient(90deg,#ef4444,#f87171)}
+.prod-card{border:1px solid var(--border);border-radius:1rem;overflow:hidden;background:var(--surface);height:100%;transition:transform .25s,box-shadow .25s}
+.prod-card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.prod-card img{width:100%;height:130px;object-fit:cover}
+.wh-photo{width:100%;height:120px;object-fit:cover;border-radius:.8rem}
+.thumb{width:52px;height:40px;object-fit:cover;border-radius:.5rem}
+.badge{border-radius:999px}
+@media(max-width:768px){.sidebar{width:70px;flex-basis:70px}.sidebar .nav-link{font-size:0;justify-content:center}.sidebar .nav-link i{font-size:1.1rem}.brand span,.brand-txt{display:none}main{padding:1rem}}
 </style></head>
 <body><div class="d-flex">
-<nav class="sidebar d-flex flex-column p-3">
-  <span class="brand text-white fs-5 fw-bold mb-4"><i class="bi bi-boxes"></i> StockPro</span>
+<nav class="sidebar">
+  <span class="brand mb-4"><span class="brand-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2.5 21 7.5v9l-9 5-9-5v-9l9-5Z" stroke="#fff" stroke-width="1.8"/><path d="M3.2 7.6 12 12.4l8.8-4.8M12 12.4v9" stroke="#fff" stroke-width="1.8"/></svg></span><span class="brand-txt">StockPro</span></span>
   <a class="nav-link active" data-view="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
   <a class="nav-link" data-view="products"><i class="bi bi-box-seam"></i> Products</a>
   <a class="nav-link" data-view="stock"><i class="bi bi-arrow-left-right"></i> Stock In/Out</a>
@@ -26,12 +66,15 @@
   <div class="mt-auto"><button class="btn btn-sm btn-outline-light w-100" id="themeBtn"><i class="bi bi-moon"></i> Light / Dark</button>
   <button class="btn btn-sm btn-outline-light w-100 mt-2" id="resetBtn">Reset demo data</button></div>
 </nav>
-<main class="flex-grow-1 p-4">
+<main>
 <div class="alert alert-info"><strong>Static demo.</strong> This page mirrors the full StockPro app in your browser (data in localStorage). The complete production app is <strong>Core PHP 8 + MySQL</strong> on GitHub — multi-tenant, Super Admin, subscriptions, transactional stock movements — Vercel can't run PHP/MySQL, so this demo is hosted here instead.</div>
 <div id="view"></div>
 </main></div>
 <script>
 const KEY='stockpro-demo-v1';
+const IMG={headphones:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=60',watch:'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=60',shoes:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=60',tech:'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=700&q=60',warehouse:'https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=700&q=60',boxes:'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=700&q=60'};
+const FALLBACK="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='400'%3E%3Crect width='700' height='400' fill='%230f2044'/%3E%3Ccircle cx='350' cy='200' r='60' fill='%2310b981' opacity='.5'/%3E%3C/svg%3E";
+const pimg=p=>/headphone/i.test(p.name)?IMG.headphones:/keyboard|mouse|webcam|cable/i.test(p.name)?IMG.tech:/lamp/i.test(p.name)?IMG.watch:p.cat==='Food & Beverage'?IMG.boxes:p.cat==='Accessories'?IMG.shoes:IMG.boxes;
 const seed=()=>({
  warehouses:[{id:1,name:'Main Warehouse',location:'Lahore'},{id:2,name:'North Branch Warehouse',location:'Rawalpindi'}],
  products:[
@@ -56,36 +99,55 @@ const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
 const total=p=>Object.values(p.stock).reduce((a,b)=>a+b,0);
 const money=n=>'$'+Number(n).toLocaleString(undefined,{minimumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let chart=null;
+let chart=null,gauge=null;
 function render(view){
  document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.dataset.view===view));
- const v=document.getElementById('view'); if(chart){chart.destroy();chart=null;}
+ const v=document.getElementById('view'); if(chart){chart.destroy();chart=null;} if(gauge){gauge.destroy();gauge=null;}
  if(view==='dashboard'){
   const value=db.products.reduce((a,p)=>a+total(p)*p.cost,0), qty=db.products.reduce((a,p)=>a+total(p),0);
   const low=db.products.filter(p=>total(p)>0&&total(p)<=p.min), out=db.products.filter(p=>total(p)<=0);
-  v.innerHTML=`<h4 class="mb-3">Inventory Dashboard</h4>
+  const healthy=db.products.filter(p=>total(p)>p.min).length, pct=db.products.length?Math.round(healthy/db.products.length*100):100;
+  v.innerHTML=`
+  <section class="hero"><div class="row g-0 align-items-stretch">
+   <div class="col-lg-5 p-4 d-flex flex-column justify-content-center">
+     <h2 class="fw-bold mb-1" style="font-size:1.65rem">Warehouse Command Centre</h2>
+     <p style="color:#b9c9e8" class="mb-3">Enterprise stock control across ${db.warehouses.length} warehouses — every movement tracked, every level visible.</p>
+     <div class="d-flex align-items-center gap-3">
+       <div class="gauge-wrap" style="width:150px;height:150px"><canvas id="gaugeCh"></canvas><div class="gauge-center"><b style="font-size:1.8rem">${pct}%</b><span>Stock health</span></div></div>
+       <div class="small" style="color:#cfe3ff"><div class="mb-1"><span class="pill pill-in">In stock</span> ${healthy} products</div><div class="mb-1"><span class="pill pill-low">Low</span> ${low.length} products</div><div><span class="pill pill-out">Out</span> ${out.length} products</div>
+       <div class="mt-2">Stock value <strong class="text-white">${money(value)}</strong></div></div>
+     </div>
+   </div>
+   <div class="col-lg-7"><img class="hero-photo" src="${IMG.warehouse}" alt="Warehouse aisle" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"></div>
+  </div></section>
   ${low.length||out.length?`<div class="alert alert-warning"><strong>Stock alerts:</strong> ${low.map(p=>esc(p.name)+' low ('+total(p)+')').join(' · ')} ${out.map(p=>esc(p.name)+' OUT OF STOCK').join(' · ')}</div>`:''}
-  <div class="row g-3">${[['Total products',db.products.length],['Total stock qty',qty],['Stock value (at cost)',money(value)],['Low stock',low.length],['Out of stock',out.length],['Suppliers',db.suppliers.length],['Open POs',db.purchases.filter(p=>p.status!=='received').length],['Sales orders',db.sales.length]].map(([l,x])=>`<div class="col-md-3"><div class="card stat p-3"><div class="fs-4 fw-bold">${x}</div><div class="text-muted small">${l}</div></div></div>`).join('')}</div>
-  <div class="row g-3 mt-1"><div class="col-lg-7"><div class="card p-3"><h6>Stock value by product</h6><canvas id="ch" height="130"></canvas></div></div>
-  <div class="col-lg-5"><div class="card p-3"><h6>Recent movements</h6>${db.movements.slice(-6).reverse().map(m=>`<div class="border-bottom py-1 small">${esc(m.p)} · ${esc(m.w)} · <span class="badge bg-secondary">${esc(m.type)}</span> ${m.qty} · ${esc(m.ref)}</div>`).join('')}</div></div></div>`;
-  chart=new Chart(document.getElementById('ch'),{type:'bar',data:{labels:db.products.map(p=>p.name),datasets:[{label:'Value',data:db.products.map(p=>total(p)*p.cost),backgroundColor:'rgba(13,148,136,.6)'}]},options:{plugins:{legend:{display:false}}}});
+  <div class="row g-3">${[['Total products',db.products.length,'bi-box-seam'],['Total stock qty',qty,'bi-boxes'],['Stock value (at cost)',money(value),'bi-cash-stack'],['Low stock',low.length,'bi-exclamation-triangle'],['Out of stock',out.length,'bi-x-circle'],['Suppliers',db.suppliers.length,'bi-truck'],['Open POs',db.purchases.filter(p=>p.status!=='received').length,'bi-cart-plus'],['Sales orders',db.sales.length,'bi-receipt']].map(([l,x,ic])=>`<div class="col-md-3"><div class="card stat p-3"><span class="ic mb-2"><i class="bi ${ic}"></i></span><div class="fs-4 fw-bold">${x}</div><div class="text-muted small">${l}</div></div></div>`).join('')}</div>
+  <div class="row g-3 mt-1">
+   <div class="col-lg-7"><div class="card p-3"><h6>Stock value by product</h6><canvas id="ch" height="130"></canvas></div>
+   <div class="card p-3 mt-3"><h6>Recent movements</h6>${db.movements.slice(-6).reverse().map(m=>`<div class="border-bottom py-1 small">${esc(m.p)} · ${esc(m.w)} · <span class="badge bg-secondary">${esc(m.type)}</span> ${m.qty} · ${esc(m.ref)}</div>`).join('')}</div></div>
+   <div class="col-lg-5"><div class="card p-3"><h6>Featured products</h6><div class="row g-3">${db.products.slice(0,4).map(p=>`<div class="col-6"><div class="prod-card"><img src="${pimg(p)}" alt="${esc(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"><div class="p-2"><div class="small fw-bold">${esc(p.name)}</div><div class="small text-muted">${total(p)} in stock · ${money(total(p)*p.cost)}</div><div class="stockbar ${total(p)<=0?'out':(total(p)<=p.min?'low':'')} mt-1"><i style="width:${Math.min(100,total(p))}%"></i></div></div></div></div>`).join('')}</div></div></div>
+  </div>`;
+  gauge=new Chart(document.getElementById('gaugeCh'),{type:'doughnut',data:{datasets:[{data:[pct,100-pct],backgroundColor:['#10b981','rgba(255,255,255,.10)'],borderWidth:0}]},options:{cutout:'76%',plugins:{legend:{display:false},tooltip:{enabled:false}},events:[]}});
+  chart=new Chart(document.getElementById('ch'),{type:'bar',data:{labels:db.products.map(p=>p.name),datasets:[{label:'Value',data:db.products.map(p=>total(p)*p.cost),backgroundColor:'rgba(16,185,129,.65)',borderRadius:6}]},options:{plugins:{legend:{display:false}}}});
  }
  if(view==='products'){
-  v.innerHTML=`<h4 class="mb-3">Products</h4><div class="card p-3"><form id="pf" class="row g-2 mb-3">
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Products</h4>
+  <div class="row g-3 mb-3">${db.products.slice(0,4).map(p=>`<div class="col-md-3"><div class="prod-card"><img src="${pimg(p)}" alt="${esc(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"><div class="p-3"><div class="fw-bold small">${esc(p.name)}</div><div class="small text-muted">${esc(p.sku)} · ${esc(p.cat)}</div><div class="d-flex justify-content-between align-items-center mt-1"><span class="small">${money(p.price)}</span>${total(p)<=0?'<span class="pill pill-out">Out</span>':total(p)<=p.min?'<span class="pill pill-low">Low · '+total(p)+'</span>':'<span class="pill pill-in">'+total(p)+' in stock</span>'}</div></div></div></div>`).join('')}</div>
+  <div class="card p-3"><form id="pf" class="row g-2 mb-3">
    <div class="col-md-2"><input class="form-control" name="sku" placeholder="SKU" required></div><div class="col-md-2"><input class="form-control" name="barcode" placeholder="Barcode (auto)"></div>
    <div class="col-md-3"><input class="form-control" name="name" placeholder="Product name" required></div><div class="col-md-2"><input class="form-control" name="cat" placeholder="Category" value="General"></div>
    <div class="col-md-1"><input class="form-control" type="number" step="0.01" name="cost" placeholder="Cost" required></div><div class="col-md-1"><input class="form-control" type="number" step="0.01" name="price" placeholder="Price" required></div>
    <div class="col-md-1"><button class="btn btn-primary w-100">Add</button></div></form>
   <input class="form-control mb-2" id="pq" placeholder="Search name / SKU / barcode…">
-  <table class="table table-sm"><tr><th>SKU / Barcode</th><th>Product</th><th>Category</th><th>Cost / Price</th><th>Main</th><th>North</th><th>Total</th><th></th></tr>
-  <tbody id="pt">${prodRows('')}</tbody></table></div>`;
+  <div class="table-responsive"><table class="table table-sm"><tr><th></th><th>SKU / Barcode</th><th>Product</th><th>Category</th><th>Cost / Price</th><th>Main</th><th>North</th><th>Total</th><th>Level</th><th></th></tr>
+  <tbody id="pt">${prodRows('')}</tbody></table></div></div>`;
   document.getElementById('pq').addEventListener('input',e=>document.getElementById('pt').innerHTML=prodRows(e.target.value));
   document.getElementById('pf').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);
    db.products.push({id:Date.now(),sku:f.get('sku'),barcode:f.get('barcode')||('89'+Math.floor(1e9+Math.random()*9e9)),name:f.get('name'),cat:f.get('cat'),cost:+f.get('cost'),price:+f.get('price'),min:5,stock:{1:0,2:0}});save();render('products');});
   bindDel();
  }
  if(view==='stock'){
-  v.innerHTML=`<h4 class="mb-3">Stock In / Out / Adjust</h4><div class="card p-3"><form id="sf" class="row g-2">
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Stock In / Out / Adjust</h4><div class="card p-3"><form id="sf" class="row g-2">
    <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)}) — total ${total(p)}</option>`).join('')}</select></div>
    <div class="col-md-2"><select class="form-select" name="wid">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
    <div class="col-md-2"><select class="form-select" name="type"><option value="in">Stock in</option><option value="out">Stock out</option><option value="adjustment">Adjustment (signed)</option><option value="damage">Damaged</option><option value="expiry">Expired</option></select></div>
@@ -99,7 +161,7 @@ function render(view){
    p.stock[w.id]=(p.stock[w.id]||0)+d;db.movements.push({p:p.name,w:w.name,type:t,qty:d,ref:f.get('note')||'manual'});save();render('stock');});
  }
  if(view==='warehouses'){
-  v.innerHTML=`<h4 class="mb-3">Warehouses & Transfers</h4><div class="row g-3">${db.warehouses.map(w=>`<div class="col-md-6"><div class="card p-3"><strong>${esc(w.name)}</strong> <span class="text-muted small">${esc(w.location)}</span><table class="table table-sm mt-2">${db.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.stock[w.id]||0}</td><td>${money((p.stock[w.id]||0)*p.cost)}</td></tr>`).join('')}</table></div></div>`).join('')}</div>
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Warehouses & Transfers</h4><div class="row g-3">${db.warehouses.map((w,i)=>`<div class="col-md-6"><div class="card p-3 h-100"><img class="wh-photo mb-3" src="${i===0?IMG.warehouse:IMG.boxes}" alt="${esc(w.name)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"><strong>${esc(w.name)}</strong> <span class="text-muted small">${esc(w.location)}</span><table class="table table-sm mt-2">${db.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.stock[w.id]||0}</td><td>${money((p.stock[w.id]||0)*p.cost)}</td></tr>`).join('')}</table></div></div>`).join('')}</div>
   <div class="card p-3 mt-3"><h6>Transfer stock</h6><form id="tf" class="row g-2">
    <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
    <div class="col-md-2"><select class="form-select" name="from">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
@@ -111,12 +173,12 @@ function render(view){
    p.stock[from]-=q;p.stock[to]=(p.stock[to]||0)+q;const ref='TRF-'+Date.now();db.movements.push({p:p.name,w:db.warehouses.find(w=>w.id===from).name,type:'transfer',qty:-q,ref},{p:p.name,w:db.warehouses.find(w=>w.id===to).name,type:'transfer',qty:q,ref});save();render('warehouses');});
  }
  if(view==='suppliers'){
-  v.innerHTML=`<h4 class="mb-3">Suppliers</h4><div class="card p-3"><form id="sf2" class="row g-2 mb-3"><div class="col-md-5"><input class="form-control" name="name" placeholder="Supplier name" required></div><div class="col-md-4"><input class="form-control" name="phone" placeholder="Phone"></div><div class="col-md-3"><button class="btn btn-primary w-100">Add supplier</button></div></form>
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Suppliers</h4><div class="card p-3"><form id="sf2" class="row g-2 mb-3"><div class="col-md-5"><input class="form-control" name="name" placeholder="Supplier name" required></div><div class="col-md-4"><input class="form-control" name="phone" placeholder="Phone"></div><div class="col-md-3"><button class="btn btn-primary w-100">Add supplier</button></div></form>
   <table class="table table-sm"><tr><th>Supplier</th><th>Phone</th><th>Balance owed</th></tr>${db.suppliers.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.phone)}</td><td>${money(s.balance)}</td></tr>`).join('')}</table></div>`;
   document.getElementById('sf2').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);db.suppliers.push({id:Date.now(),name:f.get('name'),phone:f.get('phone'),balance:0});save();render('suppliers');});
  }
  if(view==='purchases'){
-  v.innerHTML=`<h4 class="mb-3">Purchase Orders</h4><div class="card p-3"><form id="pof" class="row g-2 mb-3">
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Purchase Orders</h4><div class="card p-3"><form id="pof" class="row g-2 mb-3">
    <div class="col-md-3"><select class="form-select" name="supplier">${db.suppliers.map(s=>`<option>${esc(s.name)}</option>`).join('')}</select></div>
    <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
    <div class="col-md-2"><select class="form-select" name="wid">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
@@ -127,7 +189,7 @@ function render(view){
    db.purchases.push({id:db.purchases.length+1,supplier:f.get('supplier'),total:q*p.cost,status:'ordered',_pid:p.id,_wid:+f.get('wid'),_qty:q});save();render('purchases');});
  }
  if(view==='sales'){
-  v.innerHTML=`<h4 class="mb-3">Sales Orders</h4><div class="card p-3"><form id="sof" class="row g-2 mb-3">
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Sales Orders</h4><div class="card p-3"><form id="sof" class="row g-2 mb-3">
    <div class="col-md-3"><select class="form-select" name="customer">${db.customers.map(c=>`<option>${esc(c.name)}</option>`).join('')}</select></div>
    <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)} — stock ${total(p)}</option>`).join('')}</select></div>
    <div class="col-md-2"><select class="form-select" name="wid">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
@@ -141,25 +203,25 @@ function render(view){
  }
  if(view==='reports'){
   const rev=db.sales.reduce((a,s)=>a+s.total,0), val=db.products.reduce((a,p)=>a+total(p)*p.cost,0);
-  v.innerHTML=`<h4 class="mb-3">Reports</h4><div class="row g-3">
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Reports</h4><div class="row g-3">
    <div class="col-md-6"><div class="card p-3"><h6>Stock report</h6><table class="table table-sm">${db.products.map(p=>`<tr><td>${esc(p.sku)}</td><td>${esc(p.name)}</td><td>${total(p)}</td><td>${money(total(p)*p.cost)}</td></tr>`).join('')}</table></div></div>
    <div class="col-md-6"><div class="card p-3"><h6>Summary</h6><p class="mb-1">Inventory valuation: <strong>${money(val)}</strong></p><p class="mb-1">Sales revenue: <strong>${money(rev)}</strong></p><p class="mb-1">Purchase spend: <strong>${money(db.purchases.reduce((a,p)=>a+p.total,0))}</strong></p><p class="mb-0">Expiring soon: Energy Drink batch B-DRINK-01 (20 days) · Protein Bars batch B-BAR-01 (10 days)</p></div>
    <div class="card p-3 mt-3"><h6>Profit by product (price − cost)</h6><table class="table table-sm">${db.products.map(p=>`<tr><td>${esc(p.name)}</td><td>Margin ${money(p.price-p.cost)} / unit</td></tr>`).join('')}</table></div></div></div>`;
  }
  if(view==='plans'){
-  v.innerHTML=`<h4 class="mb-3">Subscription Plans</h4><div class="row g-3">${[['Free Trial',0,'50 products · 1 warehouse · 3 employees'],['Basic',19,'500 products · 2 warehouses · 5 employees'],['Professional',49,'5,000 products · 5 warehouses · 15 employees'],['Business',99,'20,000 products · 10 warehouses · 40 employees'],['Enterprise',249,'100,000 products · 50 warehouses · 200 employees']].map(([n,pr,d],i)=>`<div class="col-md-4"><div class="card p-3 h-100 ${i===2?'border-primary border-2':''}"><h5>${n}</h5><div class="fs-4 fw-bold">${money(pr)}<small class="fs-6 text-muted">/mo</small></div><p class="small text-muted">${d}</p>${i===2?'<span class="badge bg-primary">Current plan — Demo Wholesale Co</span>':`<button class="btn btn-outline-primary btn-sm" onclick="alert('In the full PHP app this writes a subscription + payment + invoice in one transaction. Coupon WELCOME10 = 10% off.')">Choose ${n}</button>`}</div></div>`).join('')}</div>
-  <div class="alert alert-light mt-3 small">Demo logins for the full PHP app (password: <code>password</code>): Super Admin <code>super@stockpro.test</code> · Business Owner <code>admin@demo.com</code> · Warehouse Manager <code>warehouse@demo.com</code></div>`;
+  v.innerHTML=`<h4 class="mb-3 fw-bold">Subscription Plans</h4><div class="row g-3">${[['Free Trial',0,'50 products · 1 warehouse · 3 employees'],['Basic',19,'500 products · 2 warehouses · 5 employees'],['Professional',49,'5,000 products · 5 warehouses · 15 employees'],['Business',99,'20,000 products · 10 warehouses · 40 employees'],['Enterprise',249,'100,000 products · 50 warehouses · 200 employees']].map(([n,pr,d],i)=>`<div class="col-md-4"><div class="card p-3 h-100 ${i===2?'border-2':''}" ${i===2?'style="border-color:var(--emerald)"':''}><h5>${n}</h5><div class="fs-4 fw-bold">${money(pr)}<small class="fs-6 text-muted">/mo</small></div><p class="small text-muted">${d}</p>${i===2?'<span class="badge bg-success">Current plan — Demo Wholesale Co</span>':`<button class="btn btn-sm btn-primary" onclick="alert('In the full PHP app this writes a subscription + payment + invoice in one transaction. Coupon WELCOME10 = 10% off.')">Choose ${n}</button>`}</div></div>`).join('')}</div>
+  <div class="alert alert-info mt-3 small">Demo logins for the full PHP app (password: <code>password</code>): Super Admin <code>super@stockpro.test</code> · Business Owner <code>admin@demo.com</code> · Warehouse Manager <code>warehouse@demo.com</code></div>`;
  }
 }
-function prodRows(q){return db.products.filter(p=>(p.name+p.sku+p.barcode).toLowerCase().includes(q.toLowerCase())).map(p=>`<tr class="${total(p)<=0?'table-danger':(total(p)<=p.min?'table-warning':'')}"><td class="small">${esc(p.sku)}<br><span class="text-muted">${esc(p.barcode)}</span></td><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>${money(p.cost)} / ${money(p.price)}</td><td>${p.stock[1]||0}</td><td>${p.stock[2]||0}</td><td class="fw-bold">${total(p)}</td><td><button class="btn btn-sm btn-outline-danger" onclick="delProd(${p.id})">Del</button></td></tr>`).join('');}
+function prodRows(q){return db.products.filter(p=>(p.name+p.sku+p.barcode).toLowerCase().includes(q.toLowerCase())).map(p=>`<tr class="${total(p)<=0?'table-danger':(total(p)<=p.min?'table-warning':'')}"><td><img class="thumb" src="${pimg(p)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"></td><td class="small">${esc(p.sku)}<br><span class="text-muted">${esc(p.barcode)}</span></td><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>${money(p.cost)} / ${money(p.price)}</td><td>${p.stock[1]||0}</td><td>${p.stock[2]||0}</td><td class="fw-bold">${total(p)}</td><td>${total(p)<=0?'<span class="pill pill-out">Out</span>':total(p)<=p.min?'<span class="pill pill-low">Low</span>':'<span class="pill pill-in">In stock</span>'}<div class="stockbar ${total(p)<=0?'out':(total(p)<=p.min?'low':'')} mt-1"><i style="width:${Math.min(100,total(p))}%"></i></div></td><td><button class="btn btn-sm btn-outline-danger" onclick="delProd(${p.id})">Del</button></td></tr>`).join('');}
 function bindDel(){}
-function delProd(id){db=db;db.products=db.products.filter(p=>p.id!==id);save();render('products');}
+function delProd(id){db.products=db.products.filter(p=>p.id!==id);save();render('products');}
 function receivePO(id){const po=db.purchases.find(x=>x.id===id);if(!po||po.status==='received')return;po.status='received';
  if(po._pid){const p=db.products.find(x=>x.id===po._pid);p.stock[po._wid]=(p.stock[po._wid]||0)+po._qty;db.movements.push({p:p.name,w:db.warehouses.find(w=>w.id===po._wid).name,type:'in',qty:po._qty,ref:'PO #'+po.id});}
  save();render('purchases');}
 document.querySelectorAll('.nav-link').forEach(a=>a.addEventListener('click',()=>render(a.dataset.view)));
-document.getElementById('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem('stockpro-theme',document.body.classList.contains('dark')?'dark':'light');});
-if(localStorage.getItem('stockpro-theme')==='dark')document.body.classList.add('dark');
+document.getElementById('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('light');localStorage.setItem('stockpro-theme',document.body.classList.contains('light')?'light':'dark');});
+if(localStorage.getItem('stockpro-theme')==='light')document.body.classList.add('light');
 document.getElementById('resetBtn').addEventListener('click',()=>{localStorage.removeItem(KEY);location.reload();});
 render('dashboard');
 </script></body></html>
