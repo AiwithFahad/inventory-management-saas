@@ -1,6 +1,6 @@
-function applyTheme(dark){document.body.classList.toggle('dark',dark);document.documentElement.setAttribute('data-theme',dark?'dark':'light');localStorage.setItem('stock-theme',dark?'dark':'light');}
+function applyTheme(dark){document.body.classList.toggle('dark',dark);document.documentElement.setAttribute('data-theme',dark?'dark':'light');localStorage.setItem('stock-theme-v2',dark?'dark':'light');}
 document.getElementById('themeToggle')?.addEventListener('click',()=>applyTheme(!document.body.classList.contains('dark')));
-if(localStorage.getItem('stock-theme')==='dark')applyTheme(true);
+if(localStorage.getItem('stock-theme-v2')==='dark')applyTheme(true);
 document.getElementById('sidebarToggle')?.addEventListener('click',()=>{document.body.classList.toggle('sidebar-collapsed');});
 document.querySelectorAll('[data-confirm]')?.forEach(el=>el.addEventListener('click',ev=>{if(!confirm(el.dataset.confirm))ev.preventDefault();}));
 function makeChart(id,type,labels,data,label){const el=document.getElementById(id);if(!el||typeof Chart==='undefined')return;new Chart(el,{type:type,data:{labels:labels,datasets:[{label:label,data:data,backgroundColor:'rgba(16,185,129,.55)',borderColor:'#059669',borderWidth:2,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}}}});}

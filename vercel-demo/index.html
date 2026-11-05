@@ -6,22 +6,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--navy:#0a1633;--navy2:#0f2044;--emerald:#10b981;--emerald2:#059669;--ink:#e8eefc;--muted:#93a5c4;--surface:#0d1b36;--surface2:#0a1730;--border:#1e2f52;--amber:#f59e0b;--red:#ef4444}
-body{background:#060d1f;color:var(--ink);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
-body.light{--ink:#0b1526;--muted:#64748b;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;background:#eef2f7;color:var(--ink)}
-a{color:#34d399} body.light a{color:var(--emerald2)}
-.sidebar{width:236px;flex:0 0 236px;background:linear-gradient(165deg,#0a1633,#0f2044 60%,#0b2e2a 135%);min-height:100vh;position:sticky;top:0;padding:1.1rem .9rem;display:flex;flex-direction:column}
-.brand{display:flex;align-items:center;gap:.6rem;color:#fff;font-weight:800;font-size:1.15rem}
+:root{--navy:#0a1633;--navy2:#0f2044;--emerald:#10b981;--emerald2:#059669;--ink:#14232e;--head:#0f2233;--body:#33475b;--muted:#5b7186;--surface:#ffffff;--surface2:#f6f8f7;--border:#dde6e1;--amber:#f59e0b;--red:#ef4444}
+body.dark{--ink:#e8eefc;--head:#e8eefc;--body:#c6d4ea;--muted:#93a5c4;--surface:#0d1b36;--surface2:#0a1730;--border:#1e2f52}
+body{background:#f6f8f7;color:var(--body);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+body.dark{background:#060d1f;color:var(--ink)}
+h1,h2,h3,h4,h5,h6{color:var(--head)}
+/* Light theme is the default (first paint). Dark is opt-in via the toggle -> body.dark */
+a{color:var(--emerald2)} body.dark a{color:#34d399}
+.sidebar{width:236px;flex:0 0 236px;background:#ffffff;border-right:1px solid var(--border);min-height:100vh;position:sticky;top:0;padding:1.1rem .9rem;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:.6rem;color:var(--head);font-weight:800;font-size:1.15rem}
 .brand-mark{display:inline-flex;width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#10b981,#0ea5a4);align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(16,185,129,.45)}
-.sidebar .nav-link{color:#b9c9e8;border-radius:.65rem;margin:.14rem 0;padding:.55rem .7rem;cursor:pointer;font-weight:500;display:flex;gap:.55rem;align-items:center}
-.sidebar .nav-link:hover{background:rgba(255,255,255,.09);color:#fff}
-.sidebar .nav-link.active{background:linear-gradient(90deg,rgba(16,185,129,.30),rgba(16,185,129,.08));color:#fff;box-shadow:inset 0 0 0 1px rgba(16,185,129,.35)}
+.sidebar .nav-link{color:#33475b;border-radius:.65rem;margin:.14rem 0;padding:.55rem .7rem;cursor:pointer;font-weight:500;display:flex;gap:.55rem;align-items:center}
+.sidebar .nav-link:hover{background:#eef4f1;color:var(--head)}
+.sidebar .nav-link.active{background:linear-gradient(90deg,rgba(16,185,129,.16),rgba(16,185,129,.05));color:var(--emerald2);box-shadow:inset 0 0 0 1px rgba(16,185,129,.35)}
 main{flex:1;min-width:0;padding:1.5rem}
-.card{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:1rem;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.card{background:var(--surface);color:var(--body);border:1px solid var(--border);border-radius:1rem;box-shadow:0 6px 24px rgba(15,34,51,.07)}
 .stat{border:1px solid var(--border);border-radius:1rem;position:relative;overflow:hidden;height:100%}
 .stat::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,#10b981,#0ea5a4)}
-.stat .ic{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:rgba(16,185,129,.16);color:#34d399;font-size:1.15rem}
-body.light .stat .ic{color:var(--emerald2)}
+.stat .ic{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:rgba(16,185,129,.14);color:var(--emerald2);font-size:1.15rem}
 .table{color:var(--ink);--bs-table-bg:transparent;--bs-table-color:var(--ink)}
 .table th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-color:var(--border)}
 .table td{border-color:var(--border);vertical-align:middle}
@@ -29,26 +31,41 @@ body.light .stat .ic{color:var(--emerald2)}
 .form-control:focus,.form-select:focus{border-color:var(--emerald);box-shadow:0 0 0 .25rem rgba(16,185,129,.30);background:var(--surface);color:var(--ink)}
 .btn{border-radius:.65rem;font-weight:600}.btn-primary{background:linear-gradient(135deg,#10b981,#059669);border:0;box-shadow:0 8px 18px rgba(16,185,129,.35)}
 .btn-success{background:var(--emerald2);border-color:var(--emerald2)}
-.btn-outline-light{border-color:rgba(255,255,255,.35)}
-.alert{border:0;border-radius:.85rem}.alert-info{background:rgba(56,189,248,.14);color:#bae6fd}body.light .alert-info{background:#dbeafe;color:#1e40af}
-.alert-warning{background:rgba(245,158,11,.16);color:#fcd34d}body.light .alert-warning{background:#fef3c7;color:#92400e}
+.btn-outline-light{border-color:#c3d2cc;color:#33475b;background:#ffffff}
+.alert{border:0;border-radius:.85rem}.alert-info{background:#dbeafe;color:#1e40af}
+.alert-warning{background:#fef3c7;color:#92400e}
 .text-muted{color:var(--muted)!important}.border-bottom{border-color:var(--border)!important}
-.hero{border-radius:1.25rem;overflow:hidden;background:linear-gradient(150deg,#0a1633,#0f2044 55%,#0b2e2a 135%);color:#eaf2ff;box-shadow:0 24px 60px rgba(0,0,0,.4);margin-bottom:1.25rem}
+.hero{border-radius:1.25rem;overflow:hidden;background:linear-gradient(150deg,#ffffff,#eef7f2 55%,#e0f1e7 135%);color:var(--head);border:1px solid var(--border);box-shadow:0 14px 34px rgba(15,34,51,.08);margin-bottom:1.25rem}
 .hero .hero-photo{width:100%;height:100%;min-height:190px;object-fit:cover;opacity:.92}
 .gauge-wrap{position:relative;width:190px;height:190px;margin:0 auto}
-.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
-.gauge-center b{font-size:2.3rem;line-height:1}.gauge-center span{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:#9fe8cf}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--head)}
+.gauge-center b{font-size:2.3rem;line-height:1}.gauge-center span{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--emerald2)}
 .pill{display:inline-flex;padding:.16rem .55rem;border-radius:999px;font-size:.7rem;font-weight:700}
-.pill-in{background:rgba(16,185,129,.18);color:#34d399}.pill-low{background:rgba(245,158,11,.18);color:#fbbf24}.pill-out{background:rgba(239,68,68,.18);color:#f87171}
+.pill-in{background:rgba(16,185,129,.14);color:#047857}.pill-low{background:rgba(245,158,11,.16);color:#b45309}.pill-out{background:rgba(239,68,68,.12);color:#dc2626}
 .stockbar{height:7px;border-radius:99px;background:var(--border);overflow:hidden;min-width:80px}
 .stockbar>i{display:block;height:100%;background:linear-gradient(90deg,#10b981,#0ea5a4)}
 .stockbar.low>i{background:linear-gradient(90deg,#f59e0b,#fbbf24)}.stockbar.out>i{background:linear-gradient(90deg,#ef4444,#f87171)}
 .prod-card{border:1px solid var(--border);border-radius:1rem;overflow:hidden;background:var(--surface);height:100%;transition:transform .25s,box-shadow .25s}
-.prod-card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.prod-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(15,34,51,.13)}
 .prod-card img{width:100%;height:130px;object-fit:cover}
 .wh-photo{width:100%;height:120px;object-fit:cover;border-radius:.8rem}
 .thumb{width:52px;height:40px;object-fit:cover;border-radius:.5rem}
 .badge{border-radius:999px}
+.stat .fs-4{color:var(--head)}
+body.dark .sidebar{background:linear-gradient(165deg,#0a1633,#0f2044 60%,#0b2e2a 135%);border-right:0}
+body.dark .brand{color:#fff}
+body.dark .sidebar .nav-link{color:#b9c9e8}
+body.dark .sidebar .nav-link:hover{background:rgba(255,255,255,.09);color:#fff}
+body.dark .sidebar .nav-link.active{color:#fff;background:linear-gradient(90deg,rgba(16,185,129,.30),rgba(16,185,129,.08))}
+body.dark .card{box-shadow:0 10px 30px rgba(0,0,0,.25)}
+body.dark .stat .ic{color:#34d399}
+body.dark .alert-info{background:rgba(56,189,248,.14);color:#bae6fd}
+body.dark .alert-warning{background:rgba(245,158,11,.16);color:#fcd34d}
+body.dark .hero{background:linear-gradient(150deg,#0a1633,#0f2044 55%,#0b2e2a 135%);color:#eaf2ff;border-color:transparent;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+body.dark .gauge-center{color:#fff}body.dark .gauge-center span{color:#9fe8cf}
+body.dark .pill-in{color:#34d399}body.dark .pill-low{color:#fbbf24}body.dark .pill-out{color:#f87171}
+body.dark .btn-outline-light{border-color:rgba(255,255,255,.35);color:#f8fafc;background:transparent}
+body.dark .prod-card:hover{box-shadow:0 18px 40px rgba(0,0,0,.35)}
 @media(max-width:768px){.sidebar{width:70px;flex-basis:70px}.sidebar .nav-link{font-size:0;justify-content:center}.sidebar .nav-link i{font-size:1.1rem}.brand span,.brand-txt{display:none}main{padding:1rem}}
 </style></head>
 <body><div class="d-flex">
@@ -73,7 +90,7 @@ body.light .stat .ic{color:var(--emerald2)}
 <script>
 const KEY='stockpro-demo-v1';
 const IMG={headphones:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=60',watch:'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=60',shoes:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=60',tech:'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=700&q=60',warehouse:'https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=700&q=60',boxes:'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=700&q=60'};
-const FALLBACK="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='400'%3E%3Crect width='700' height='400' fill='%230f2044'/%3E%3Ccircle cx='350' cy='200' r='60' fill='%2310b981' opacity='.5'/%3E%3C/svg%3E";
+const FALLBACK="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='400'%3E%3Crect width='700' height='400' fill='%23e8f0ec'/%3E%3Ccircle cx='350' cy='200' r='60' fill='%2310b981' opacity='.5'/%3E%3C/svg%3E";
 const pimg=p=>/headphone/i.test(p.name)?IMG.headphones:/keyboard|mouse|webcam|cable/i.test(p.name)?IMG.tech:/lamp/i.test(p.name)?IMG.watch:p.cat==='Food & Beverage'?IMG.boxes:p.cat==='Accessories'?IMG.shoes:IMG.boxes;
 const seed=()=>({
  warehouses:[{id:1,name:'Main Warehouse',location:'Lahore'},{id:2,name:'North Branch Warehouse',location:'Rawalpindi'}],
@@ -103,6 +120,7 @@ let chart=null,gauge=null;
 function render(view){
  document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.dataset.view===view));
  const v=document.getElementById('view'); if(chart){chart.destroy();chart=null;} if(gauge){gauge.destroy();gauge=null;}
+ if(window.Chart){const dk=document.body.classList.contains('dark');Chart.defaults.color=dk?'#93a5c4':'#5b7186';Chart.defaults.borderColor=dk?'rgba(147,165,196,.18)':'rgba(15,34,51,.10)';}
  if(view==='dashboard'){
   const value=db.products.reduce((a,p)=>a+total(p)*p.cost,0), qty=db.products.reduce((a,p)=>a+total(p),0);
   const low=db.products.filter(p=>total(p)>0&&total(p)<=p.min), out=db.products.filter(p=>total(p)<=0);
@@ -111,11 +129,11 @@ function render(view){
   <section class="hero"><div class="row g-0 align-items-stretch">
    <div class="col-lg-5 p-4 d-flex flex-column justify-content-center">
      <h2 class="fw-bold mb-1" style="font-size:1.65rem">Warehouse Command Centre</h2>
-     <p style="color:#b9c9e8" class="mb-3">Enterprise stock control across ${db.warehouses.length} warehouses — every movement tracked, every level visible.</p>
+     <p style="color:#5b7186" class="mb-3">Enterprise stock control across ${db.warehouses.length} warehouses — every movement tracked, every level visible.</p>
      <div class="d-flex align-items-center gap-3">
        <div class="gauge-wrap" style="width:150px;height:150px"><canvas id="gaugeCh"></canvas><div class="gauge-center"><b style="font-size:1.8rem">${pct}%</b><span>Stock health</span></div></div>
-       <div class="small" style="color:#cfe3ff"><div class="mb-1"><span class="pill pill-in">In stock</span> ${healthy} products</div><div class="mb-1"><span class="pill pill-low">Low</span> ${low.length} products</div><div><span class="pill pill-out">Out</span> ${out.length} products</div>
-       <div class="mt-2">Stock value <strong class="text-white">${money(value)}</strong></div></div>
+       <div class="small" style="color:#33475b"><div class="mb-1"><span class="pill pill-in">In stock</span> ${healthy} products</div><div class="mb-1"><span class="pill pill-low">Low</span> ${low.length} products</div><div><span class="pill pill-out">Out</span> ${out.length} products</div>
+       <div class="mt-2">Stock value <strong>${money(value)}</strong></div></div>
      </div>
    </div>
    <div class="col-lg-7"><img class="hero-photo" src="${IMG.warehouse}" alt="Warehouse aisle" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"></div>
@@ -127,7 +145,7 @@ function render(view){
    <div class="card p-3 mt-3"><h6>Recent movements</h6>${db.movements.slice(-6).reverse().map(m=>`<div class="border-bottom py-1 small">${esc(m.p)} · ${esc(m.w)} · <span class="badge bg-secondary">${esc(m.type)}</span> ${m.qty} · ${esc(m.ref)}</div>`).join('')}</div></div>
    <div class="col-lg-5"><div class="card p-3"><h6>Featured products</h6><div class="row g-3">${db.products.slice(0,4).map(p=>`<div class="col-6"><div class="prod-card"><img src="${pimg(p)}" alt="${esc(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK}'"><div class="p-2"><div class="small fw-bold">${esc(p.name)}</div><div class="small text-muted">${total(p)} in stock · ${money(total(p)*p.cost)}</div><div class="stockbar ${total(p)<=0?'out':(total(p)<=p.min?'low':'')} mt-1"><i style="width:${Math.min(100,total(p))}%"></i></div></div></div></div>`).join('')}</div></div></div>
   </div>`;
-  gauge=new Chart(document.getElementById('gaugeCh'),{type:'doughnut',data:{datasets:[{data:[pct,100-pct],backgroundColor:['#10b981','rgba(255,255,255,.10)'],borderWidth:0}]},options:{cutout:'76%',plugins:{legend:{display:false},tooltip:{enabled:false}},events:[]}});
+  gauge=new Chart(document.getElementById('gaugeCh'),{type:'doughnut',data:{datasets:[{data:[pct,100-pct],backgroundColor:['#10b981',document.body.classList.contains('dark')?'rgba(255,255,255,.12)':'rgba(15,34,51,.10)'],borderWidth:0}]},options:{cutout:'76%',plugins:{legend:{display:false},tooltip:{enabled:false}},events:[]}});
   chart=new Chart(document.getElementById('ch'),{type:'bar',data:{labels:db.products.map(p=>p.name),datasets:[{label:'Value',data:db.products.map(p=>total(p)*p.cost),backgroundColor:'rgba(16,185,129,.65)',borderRadius:6}]},options:{plugins:{legend:{display:false}}}});
  }
  if(view==='products'){
@@ -220,8 +238,9 @@ function receivePO(id){const po=db.purchases.find(x=>x.id===id);if(!po||po.statu
  if(po._pid){const p=db.products.find(x=>x.id===po._pid);p.stock[po._wid]=(p.stock[po._wid]||0)+po._qty;db.movements.push({p:p.name,w:db.warehouses.find(w=>w.id===po._wid).name,type:'in',qty:po._qty,ref:'PO #'+po.id});}
  save();render('purchases');}
 document.querySelectorAll('.nav-link').forEach(a=>a.addEventListener('click',()=>render(a.dataset.view)));
-document.getElementById('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('light');localStorage.setItem('stockpro-theme',document.body.classList.contains('light')?'light':'dark');});
-if(localStorage.getItem('stockpro-theme')==='light')document.body.classList.add('light');
+document.getElementById('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem('stockpro-theme-v2',document.body.classList.contains('dark')?'dark':'light');});
+try{localStorage.removeItem('stockpro-theme');}catch(e){}
+if(localStorage.getItem('stockpro-theme-v2')==='dark')document.body.classList.add('dark');
 document.getElementById('resetBtn').addEventListener('click',()=>{localStorage.removeItem(KEY);location.reload();});
 render('dashboard');
 </script></body></html>
