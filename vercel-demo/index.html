@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StockPro — Inventory Management SaaS (Demo)</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--brand:#0d9488} body{background:#f6f7fb} body.dark{background:#111827;color:#e5e7eb} body.dark .card{background:#1f2937;color:#e5e7eb} body.dark .table{color:#e5e7eb}
+.sidebar{width:230px;background:linear-gradient(180deg,#0f3d3e,#0d9488);min-height:100vh;position:sticky;top:0}
+.sidebar .nav-link{color:#ccfbf1;border-radius:.5rem;margin:.15rem 0;cursor:pointer}.sidebar .nav-link.active,.sidebar .nav-link:hover{background:rgba(255,255,255,.18);color:#fff}
+.stat{border:0;border-radius:1rem;box-shadow:0 8px 24px rgba(15,23,42,.07)}
+@media(max-width:768px){.sidebar{width:70px}.sidebar .nav-link{font-size:0}.sidebar .nav-link i{font-size:1.1rem}.brand{font-size:0!important}}
+</style></head>
+<body><div class="d-flex">
+<nav class="sidebar d-flex flex-column p-3">
+  <span class="brand text-white fs-5 fw-bold mb-4"><i class="bi bi-boxes"></i> StockPro</span>
+  <a class="nav-link active" data-view="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+  <a class="nav-link" data-view="products"><i class="bi bi-box-seam"></i> Products</a>
+  <a class="nav-link" data-view="stock"><i class="bi bi-arrow-left-right"></i> Stock In/Out</a>
+  <a class="nav-link" data-view="warehouses"><i class="bi bi-building"></i> Warehouses</a>
+  <a class="nav-link" data-view="suppliers"><i class="bi bi-truck"></i> Suppliers</a>
+  <a class="nav-link" data-view="purchases"><i class="bi bi-cart-plus"></i> Purchases</a>
+  <a class="nav-link" data-view="sales"><i class="bi bi-receipt"></i> Sales</a>
+  <a class="nav-link" data-view="reports"><i class="bi bi-bar-chart"></i> Reports</a>
+  <a class="nav-link" data-view="plans"><i class="bi bi-credit-card"></i> Plans</a>
+  <div class="mt-auto"><button class="btn btn-sm btn-outline-light w-100" id="themeBtn"><i class="bi bi-moon"></i> Light / Dark</button>
+  <button class="btn btn-sm btn-outline-light w-100 mt-2" id="resetBtn">Reset demo data</button></div>
+</nav>
+<main class="flex-grow-1 p-4">
+<div class="alert alert-info"><strong>Static demo.</strong> This page mirrors the full StockPro app in your browser (data in localStorage). The complete production app is <strong>Core PHP 8 + MySQL</strong> on GitHub — multi-tenant, Super Admin, subscriptions, transactional stock movements — Vercel can't run PHP/MySQL, so this demo is hosted here instead.</div>
+<div id="view"></div>
+</main></div>
+<script>
+const KEY='stockpro-demo-v1';
+const seed=()=>({
+ warehouses:[{id:1,name:'Main Warehouse',location:'Lahore'},{id:2,name:'North Branch Warehouse',location:'Rawalpindi'}],
+ products:[
+  {id:1,sku:'SKU-001',barcode:'890000000001',name:'Wireless Mouse',cat:'Electronics',cost:20,price:35,min:10,stock:{1:60,2:20}},
+  {id:2,sku:'SKU-002',barcode:'890000000002',name:'Mechanical Keyboard',cat:'Electronics',cost:45,price:79,min:10,stock:{1:35,2:15}},
+  {id:3,sku:'SKU-003',barcode:'890000000003',name:'USB-C Cable 1m',cat:'Accessories',cost:5,price:12,min:20,stock:{1:120,2:30}},
+  {id:4,sku:'SKU-004',barcode:'890000000004',name:'Laptop Stand',cat:'Accessories',cost:25,price:49,min:8,stock:{1:24,2:0}},
+  {id:5,sku:'SKU-005',barcode:'890000000005',name:'Noise-Cancel Headphones',cat:'Electronics',cost:60,price:119,min:6,stock:{1:14,2:6}},
+  {id:6,sku:'SKU-006',barcode:'890000000006',name:'Energy Drink 12-pack',cat:'Food & Beverage',cost:12,price:22,min:15,stock:{1:40,2:0}},
+  {id:7,sku:'SKU-007',barcode:'890000000007',name:'Protein Bars Box',cat:'Food & Beverage',cost:8,price:16,min:20,stock:{1:10,2:0}},
+  {id:8,sku:'SKU-008',barcode:'890000000008',name:'Webcam HD',cat:'Electronics',cost:30,price:59,min:5,stock:{1:0,2:0}},
+  {id:9,sku:'SKU-009',barcode:'890000000009',name:'LED Desk Lamp',cat:'Electronics',cost:18,price:34,min:8,stock:{1:18,2:4}},
+  {id:10,sku:'SKU-010',barcode:'890000000010',name:'Notebook A5',cat:'General',cost:2,price:5,min:50,stock:{1:200,2:0}}],
+ movements:[{p:'Wireless Mouse',w:'Main Warehouse',type:'in',qty:65,ref:'PO #1'},{p:'Wireless Mouse',w:'Main Warehouse',type:'out',qty:-5,ref:'SO #1'},{p:'Protein Bars Box',w:'Main Warehouse',type:'damage',qty:-5,ref:'damage'}],
+ suppliers:[{id:1,name:'TechSource Supplies',phone:'+92-300-1111111',balance:2931},{id:2,name:'FreshCo Distribution',phone:'+92-300-2222222',balance:0},{id:3,name:'Orbit Trading',phone:'+92-300-3333333',balance:0}],
+ purchases:[{id:1,supplier:'TechSource Supplies',total:7931,status:'received'},{id:2,supplier:'TechSource Supplies',total:1150,status:'ordered'}],
+ sales:[{id:1,customer:'City Retail Mart',total:175,status:'confirmed',payment:'paid'},{id:2,customer:'Campus Store',total:827,status:'confirmed',payment:'partial'}],
+ customers:[{id:1,name:'City Retail Mart'},{id:2,name:'Campus Store'},{id:3,name:'Hotel Grand Timepieces'}]
+});
+let db; try{db=JSON.parse(localStorage.getItem(KEY))||seed();}catch(e){db=seed();}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const total=p=>Object.values(p.stock).reduce((a,b)=>a+b,0);
+const money=n=>'$'+Number(n).toLocaleString(undefined,{minimumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let chart=null;
+function render(view){
+ document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.dataset.view===view));
+ const v=document.getElementById('view'); if(chart){chart.destroy();chart=null;}
+ if(view==='dashboard'){
+  const value=db.products.reduce((a,p)=>a+total(p)*p.cost,0), qty=db.products.reduce((a,p)=>a+total(p),0);
+  const low=db.products.filter(p=>total(p)>0&&total(p)<=p.min), out=db.products.filter(p=>total(p)<=0);
+  v.innerHTML=`<h4 class="mb-3">Inventory Dashboard</h4>
+  ${low.length||out.length?`<div class="alert alert-warning"><strong>Stock alerts:</strong> ${low.map(p=>esc(p.name)+' low ('+total(p)+')').join(' · ')} ${out.map(p=>esc(p.name)+' OUT OF STOCK').join(' · ')}</div>`:''}
+  <div class="row g-3">${[['Total products',db.products.length],['Total stock qty',qty],['Stock value (at cost)',money(value)],['Low stock',low.length],['Out of stock',out.length],['Suppliers',db.suppliers.length],['Open POs',db.purchases.filter(p=>p.status!=='received').length],['Sales orders',db.sales.length]].map(([l,x])=>`<div class="col-md-3"><div class="card stat p-3"><div class="fs-4 fw-bold">${x}</div><div class="text-muted small">${l}</div></div></div>`).join('')}</div>
+  <div class="row g-3 mt-1"><div class="col-lg-7"><div class="card p-3"><h6>Stock value by product</h6><canvas id="ch" height="130"></canvas></div></div>
+  <div class="col-lg-5"><div class="card p-3"><h6>Recent movements</h6>${db.movements.slice(-6).reverse().map(m=>`<div class="border-bottom py-1 small">${esc(m.p)} · ${esc(m.w)} · <span class="badge bg-secondary">${esc(m.type)}</span> ${m.qty} · ${esc(m.ref)}</div>`).join('')}</div></div></div>`;
+  chart=new Chart(document.getElementById('ch'),{type:'bar',data:{labels:db.products.map(p=>p.name),datasets:[{label:'Value',data:db.products.map(p=>total(p)*p.cost),backgroundColor:'rgba(13,148,136,.6)'}]},options:{plugins:{legend:{display:false}}}});
+ }
+ if(view==='products'){
+  v.innerHTML=`<h4 class="mb-3">Products</h4><div class="card p-3"><form id="pf" class="row g-2 mb-3">
+   <div class="col-md-2"><input class="form-control" name="sku" placeholder="SKU" required></div><div class="col-md-2"><input class="form-control" name="barcode" placeholder="Barcode (auto)"></div>
+   <div class="col-md-3"><input class="form-control" name="name" placeholder="Product name" required></div><div class="col-md-2"><input class="form-control" name="cat" placeholder="Category" value="General"></div>
+   <div class="col-md-1"><input class="form-control" type="number" step="0.01" name="cost" placeholder="Cost" required></div><div class="col-md-1"><input class="form-control" type="number" step="0.01" name="price" placeholder="Price" required></div>
+   <div class="col-md-1"><button class="btn btn-primary w-100">Add</button></div></form>
+  <input class="form-control mb-2" id="pq" placeholder="Search name / SKU / barcode…">
+  <table class="table table-sm"><tr><th>SKU / Barcode</th><th>Product</th><th>Category</th><th>Cost / Price</th><th>Main</th><th>North</th><th>Total</th><th></th></tr>
+  <tbody id="pt">${prodRows('')}</tbody></table></div>`;
+  document.getElementById('pq').addEventListener('input',e=>document.getElementById('pt').innerHTML=prodRows(e.target.value));
+  document.getElementById('pf').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);
+   db.products.push({id:Date.now(),sku:f.get('sku'),barcode:f.get('barcode')||('89'+Math.floor(1e9+Math.random()*9e9)),name:f.get('name'),cat:f.get('cat'),cost:+f.get('cost'),price:+f.get('price'),min:5,stock:{1:0,2:0}});save();render('products');});
+  bindDel();
+ }
+ if(view==='stock'){
+  v.innerHTML=`<h4 class="mb-3">Stock In / Out / Adjust</h4><div class="card p-3"><form id="sf" class="row g-2">
+   <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)}) — total ${total(p)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><select class="form-select" name="wid">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><select class="form-select" name="type"><option value="in">Stock in</option><option value="out">Stock out</option><option value="adjustment">Adjustment (signed)</option><option value="damage">Damaged</option><option value="expiry">Expired</option></select></div>
+   <div class="col-md-2"><input class="form-control" type="number" step="0.01" name="qty" placeholder="Quantity" required></div>
+   <div class="col-md-2"><input class="form-control" name="note" placeholder="Note / batch"></div>
+   <div class="col-md-1"><button class="btn btn-primary w-100">Apply</button></div></form>
+   <p class="small text-muted mt-2">Negative stock is blocked in this demo, like the PHP app's tenant setting. Quantities update instantly and a movement is logged.</p></div>
+   <div class="card p-3 mt-3"><h6>Movement history</h6>${db.movements.slice().reverse().map(m=>`<div class="border-bottom py-1 small">${esc(m.p)} · ${esc(m.w)} · <span class="badge bg-secondary">${esc(m.type)}</span> ${m.qty} · ${esc(m.ref)}</div>`).join('')}</div>`;
+  document.getElementById('sf').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);const p=db.products.find(x=>x.id==f.get('pid'));const w=db.warehouses.find(x=>x.id==f.get('wid'));const t=f.get('type');let q=Math.abs(+f.get('qty'));let d=t==='in'?q:(t==='adjustment'?+f.get('qty'):-q);
+   if((p.stock[w.id]||0)+d<0){alert('Negative stock prevented: only '+(p.stock[w.id]||0)+' available in '+w.name);return;}
+   p.stock[w.id]=(p.stock[w.id]||0)+d;db.movements.push({p:p.name,w:w.name,type:t,qty:d,ref:f.get('note')||'manual'});save();render('stock');});
+ }
+ if(view==='warehouses'){
+  v.innerHTML=`<h4 class="mb-3">Warehouses & Transfers</h4><div class="row g-3">${db.warehouses.map(w=>`<div class="col-md-6"><div class="card p-3"><strong>${esc(w.name)}</strong> <span class="text-muted small">${esc(w.location)}</span><table class="table table-sm mt-2">${db.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.stock[w.id]||0}</td><td>${money((p.stock[w.id]||0)*p.cost)}</td></tr>`).join('')}</table></div></div>`).join('')}</div>
+  <div class="card p-3 mt-3"><h6>Transfer stock</h6><form id="tf" class="row g-2">
+   <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><select class="form-select" name="from">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><select class="form-select" name="to">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><input class="form-control" type="number" step="0.01" name="qty" placeholder="Qty" required></div>
+   <div class="col-md-2"><button class="btn btn-primary w-100">Transfer</button></div></form></div>`;
+  document.getElementById('tf').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);const p=db.products.find(x=>x.id==f.get('pid'));const from=+f.get('from'),to=+f.get('to'),q=Math.abs(+f.get('qty'));
+   if(from===to){alert('Pick two different warehouses.');return;} if((p.stock[from]||0)<q){alert('Not enough stock in source warehouse.');return;}
+   p.stock[from]-=q;p.stock[to]=(p.stock[to]||0)+q;const ref='TRF-'+Date.now();db.movements.push({p:p.name,w:db.warehouses.find(w=>w.id===from).name,type:'transfer',qty:-q,ref},{p:p.name,w:db.warehouses.find(w=>w.id===to).name,type:'transfer',qty:q,ref});save();render('warehouses');});
+ }
+ if(view==='suppliers'){
+  v.innerHTML=`<h4 class="mb-3">Suppliers</h4><div class="card p-3"><form id="sf2" class="row g-2 mb-3"><div class="col-md-5"><input class="form-control" name="name" placeholder="Supplier name" required></div><div class="col-md-4"><input class="form-control" name="phone" placeholder="Phone"></div><div class="col-md-3"><button class="btn btn-primary w-100">Add supplier</button></div></form>
+  <table class="table table-sm"><tr><th>Supplier</th><th>Phone</th><th>Balance owed</th></tr>${db.suppliers.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.phone)}</td><td>${money(s.balance)}</td></tr>`).join('')}</table></div>`;
+  document.getElementById('sf2').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);db.suppliers.push({id:Date.now(),name:f.get('name'),phone:f.get('phone'),balance:0});save();render('suppliers');});
+ }
+ if(view==='purchases'){
+  v.innerHTML=`<h4 class="mb-3">Purchase Orders</h4><div class="card p-3"><form id="pof" class="row g-2 mb-3">
+   <div class="col-md-3"><select class="form-select" name="supplier">${db.suppliers.map(s=>`<option>${esc(s.name)}</option>`).join('')}</select></div>
+   <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><select class="form-select" name="wid">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><input class="form-control" type="number" step="0.01" name="qty" placeholder="Qty" required></div>
+   <div class="col-md-2"><button class="btn btn-primary w-100">Create PO</button></div></form>
+  ${db.purchases.map(po=>`<div class="d-flex justify-content-between border-bottom py-2"><span><strong>PO #${po.id}</strong> · ${esc(po.supplier)} · ${money(po.total)}</span><span><span class="badge bg-${po.status==='received'?'success':'warning'}">${esc(po.status)}</span> ${po.status!=='received'?`<button class="btn btn-sm btn-success" onclick="receivePO(${po.id})">Receive (+stock)</button>`:''}</span></div>`).join('')}</div>`;
+  document.getElementById('pof').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);const p=db.products.find(x=>x.id==f.get('pid'));const q=+f.get('qty');
+   db.purchases.push({id:db.purchases.length+1,supplier:f.get('supplier'),total:q*p.cost,status:'ordered',_pid:p.id,_wid:+f.get('wid'),_qty:q});save();render('purchases');});
+ }
+ if(view==='sales'){
+  v.innerHTML=`<h4 class="mb-3">Sales Orders</h4><div class="card p-3"><form id="sof" class="row g-2 mb-3">
+   <div class="col-md-3"><select class="form-select" name="customer">${db.customers.map(c=>`<option>${esc(c.name)}</option>`).join('')}</select></div>
+   <div class="col-md-3"><select class="form-select" name="pid">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)} — stock ${total(p)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><select class="form-select" name="wid">${db.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+   <div class="col-md-2"><input class="form-control" type="number" step="0.01" name="qty" placeholder="Qty" required></div>
+   <div class="col-md-2"><button class="btn btn-primary w-100">Create & confirm sale</button></div></form>
+  ${db.sales.map(s=>`<div class="d-flex justify-content-between border-bottom py-2"><span><strong>SO #${s.id}</strong> · ${esc(s.customer)} · ${money(s.total)}</span><span><span class="badge bg-success">${esc(s.status)}</span> <span class="badge bg-secondary">${esc(s.payment)}</span></span></div>`).join('')}</div>`;
+  document.getElementById('sof').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);const p=db.products.find(x=>x.id==f.get('pid'));const w=+f.get('wid'),q=Math.abs(+f.get('qty'));
+   if((p.stock[w]||0)<q){alert('Negative stock prevented: only '+(p.stock[w]||0)+' in that warehouse.');return;}
+   p.stock[w]-=q;db.movements.push({p:p.name,w:db.warehouses.find(x=>x.id===w).name,type:'out',qty:-q,ref:'SO #'+(db.sales.length+1)});
+   db.sales.push({id:db.sales.length+1,customer:f.get('customer'),total:q*p.price,status:'confirmed',payment:'paid'});save();render('sales');});
+ }
+ if(view==='reports'){
+  const rev=db.sales.reduce((a,s)=>a+s.total,0), val=db.products.reduce((a,p)=>a+total(p)*p.cost,0);
+  v.innerHTML=`<h4 class="mb-3">Reports</h4><div class="row g-3">
+   <div class="col-md-6"><div class="card p-3"><h6>Stock report</h6><table class="table table-sm">${db.products.map(p=>`<tr><td>${esc(p.sku)}</td><td>${esc(p.name)}</td><td>${total(p)}</td><td>${money(total(p)*p.cost)}</td></tr>`).join('')}</table></div></div>
+   <div class="col-md-6"><div class="card p-3"><h6>Summary</h6><p class="mb-1">Inventory valuation: <strong>${money(val)}</strong></p><p class="mb-1">Sales revenue: <strong>${money(rev)}</strong></p><p class="mb-1">Purchase spend: <strong>${money(db.purchases.reduce((a,p)=>a+p.total,0))}</strong></p><p class="mb-0">Expiring soon: Energy Drink batch B-DRINK-01 (20 days) · Protein Bars batch B-BAR-01 (10 days)</p></div>
+   <div class="card p-3 mt-3"><h6>Profit by product (price − cost)</h6><table class="table table-sm">${db.products.map(p=>`<tr><td>${esc(p.name)}</td><td>Margin ${money(p.price-p.cost)} / unit</td></tr>`).join('')}</table></div></div></div>`;
+ }
+ if(view==='plans'){
+  v.innerHTML=`<h4 class="mb-3">Subscription Plans</h4><div class="row g-3">${[['Free Trial',0,'50 products · 1 warehouse · 3 employees'],['Basic',19,'500 products · 2 warehouses · 5 employees'],['Professional',49,'5,000 products · 5 warehouses · 15 employees'],['Business',99,'20,000 products · 10 warehouses · 40 employees'],['Enterprise',249,'100,000 products · 50 warehouses · 200 employees']].map(([n,pr,d],i)=>`<div class="col-md-4"><div class="card p-3 h-100 ${i===2?'border-primary border-2':''}"><h5>${n}</h5><div class="fs-4 fw-bold">${money(pr)}<small class="fs-6 text-muted">/mo</small></div><p class="small text-muted">${d}</p>${i===2?'<span class="badge bg-primary">Current plan — Demo Wholesale Co</span>':`<button class="btn btn-outline-primary btn-sm" onclick="alert('In the full PHP app this writes a subscription + payment + invoice in one transaction. Coupon WELCOME10 = 10% off.')">Choose ${n}</button>`}</div></div>`).join('')}</div>
+  <div class="alert alert-light mt-3 small">Demo logins for the full PHP app (password: <code>password</code>): Super Admin <code>super@stockpro.test</code> · Business Owner <code>admin@demo.com</code> · Warehouse Manager <code>warehouse@demo.com</code></div>`;
+ }
+}
+function prodRows(q){return db.products.filter(p=>(p.name+p.sku+p.barcode).toLowerCase().includes(q.toLowerCase())).map(p=>`<tr class="${total(p)<=0?'table-danger':(total(p)<=p.min?'table-warning':'')}"><td class="small">${esc(p.sku)}<br><span class="text-muted">${esc(p.barcode)}</span></td><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>${money(p.cost)} / ${money(p.price)}</td><td>${p.stock[1]||0}</td><td>${p.stock[2]||0}</td><td class="fw-bold">${total(p)}</td><td><button class="btn btn-sm btn-outline-danger" onclick="delProd(${p.id})">Del</button></td></tr>`).join('');}
+function bindDel(){}
+function delProd(id){db=db;db.products=db.products.filter(p=>p.id!==id);save();render('products');}
+function receivePO(id){const po=db.purchases.find(x=>x.id===id);if(!po||po.status==='received')return;po.status='received';
+ if(po._pid){const p=db.products.find(x=>x.id===po._pid);p.stock[po._wid]=(p.stock[po._wid]||0)+po._qty;db.movements.push({p:p.name,w:db.warehouses.find(w=>w.id===po._wid).name,type:'in',qty:po._qty,ref:'PO #'+po.id});}
+ save();render('purchases');}
+document.querySelectorAll('.nav-link').forEach(a=>a.addEventListener('click',()=>render(a.dataset.view)));
+document.getElementById('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem('stockpro-theme',document.body.classList.contains('dark')?'dark':'light');});
+if(localStorage.getItem('stockpro-theme')==='dark')document.body.classList.add('dark');
+document.getElementById('resetBtn').addEventListener('click',()=>{localStorage.removeItem(KEY);location.reload();});
+render('dashboard');
+</script></body></html>

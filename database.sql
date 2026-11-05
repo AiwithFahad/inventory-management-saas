@@ -1,0 +1,143 @@
+-- StockPro — Inventory Management SaaS — Complete MySQL Schema (MySQL 8+, utf8mb4)
+-- Demo password for all seeded users: password
+-- Hash below is a PHP password_hash()/bcrypt hash of "password" (verified with password_verify).
+CREATE DATABASE IF NOT EXISTS stock_saas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE stock_saas;
+SET FOREIGN_KEY_CHECKS=0;
+DROP TABLE IF EXISTS sales_returns,sale_payments,sale_items,sales,customers,purchase_returns,supplier_payments,purchase_items,purchases,suppliers,stock_movements,batches,product_warehouse,products,brands,categories,warehouses,audit_logs,activities,notifications,support_tickets,announcements,settings,password_resets,invoices,payments,subscriptions,coupons,plans,role_permissions,permissions,roles,users,tenants;
+SET FOREIGN_KEY_CHECKS=1;
+
+-- ===== Core SaaS tables =====
+CREATE TABLE tenants (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(150) NOT NULL, slug VARCHAR(160) NOT NULL UNIQUE, status ENUM('active','suspended') NOT NULL DEFAULT 'active', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_tenants_status(status)) ENGINE=InnoDB;
+CREATE TABLE roles (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(60) NOT NULL UNIQUE, label VARCHAR(100) NOT NULL) ENGINE=InnoDB;
+CREATE TABLE permissions (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(80) NOT NULL UNIQUE, label VARCHAR(120) NOT NULL) ENGINE=InnoDB;
+CREATE TABLE role_permissions (role_id INT UNSIGNED NOT NULL, permission_id INT UNSIGNED NOT NULL, PRIMARY KEY(role_id,permission_id), FOREIGN KEY(role_id) REFERENCES roles(id) ON DELETE CASCADE, FOREIGN KEY(permission_id) REFERENCES permissions(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE users (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NULL, name VARCHAR(120) NOT NULL, email VARCHAR(190) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role ENUM('super_admin','owner','warehouse_manager','stock_manager','sales_manager','purchase_manager','accountant','employee') NOT NULL DEFAULT 'employee', status ENUM('active','suspended') NOT NULL DEFAULT 'active', two_factor_secret VARCHAR(120) NULL, remember_token VARCHAR(64) NULL, email_verified_at DATETIME NULL, last_login_at DATETIME NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_users_tenant(tenant_id), CONSTRAINT fk_users_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE password_resets (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, email VARCHAR(190) NOT NULL, token VARCHAR(64) NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_pr_email(email), INDEX idx_pr_token(token)) ENGINE=InnoDB;
+CREATE TABLE plans (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(80) NOT NULL, slug VARCHAR(80) NOT NULL UNIQUE, price_monthly DECIMAL(10,2) NOT NULL DEFAULT 0, price_yearly DECIMAL(10,2) NOT NULL DEFAULT 0, max_products INT NOT NULL DEFAULT 50, max_warehouses INT NOT NULL DEFAULT 1, max_users INT NOT NULL DEFAULT 3, is_active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB;
+CREATE TABLE subscriptions (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, plan_id INT UNSIGNED NOT NULL, status ENUM('trial','active','past_due','cancelled','expired') NOT NULL DEFAULT 'trial', billing_cycle ENUM('monthly','yearly') NOT NULL DEFAULT 'monthly', starts_at DATETIME NULL, ends_at DATETIME NULL, trial_ends_at DATETIME NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_sub_tenant(tenant_id), CONSTRAINT fk_sub_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_sub_plan FOREIGN KEY(plan_id) REFERENCES plans(id)) ENGINE=InnoDB;
+CREATE TABLE payments (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, subscription_id INT UNSIGNED NULL, amount DECIMAL(12,2) NOT NULL DEFAULT 0, status ENUM('paid','pending','failed','refunded') NOT NULL DEFAULT 'paid', method VARCHAR(40) NULL, paid_at DATETIME NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_pay_tenant(tenant_id), CONSTRAINT fk_pay_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_pay_sub FOREIGN KEY(subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL) ENGINE=InnoDB;
+CREATE TABLE invoices (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, payment_id INT UNSIGNED NULL, invoice_number VARCHAR(40) NOT NULL UNIQUE, amount DECIMAL(12,2) NOT NULL DEFAULT 0, status ENUM('paid','unpaid','void') NOT NULL DEFAULT 'paid', issued_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_inv_tenant(tenant_id), CONSTRAINT fk_inv_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_inv_pay FOREIGN KEY(payment_id) REFERENCES payments(id) ON DELETE SET NULL) ENGINE=InnoDB;
+CREATE TABLE coupons (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, code VARCHAR(40) NOT NULL UNIQUE, discount_percent INT NOT NULL DEFAULT 10, max_uses INT NOT NULL DEFAULT 100, used_count INT NOT NULL DEFAULT 0, expires_at DATETIME NULL, is_active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB;
+CREATE TABLE support_tickets (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NULL, user_id INT UNSIGNED NULL, subject VARCHAR(190) NOT NULL, message TEXT NULL, status ENUM('open','in_progress','resolved','closed') NOT NULL DEFAULT 'open', priority ENUM('low','medium','high') NOT NULL DEFAULT 'medium', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_tk_tenant(tenant_id), CONSTRAINT fk_tk_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_tk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL) ENGINE=InnoDB;
+CREATE TABLE announcements (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, title VARCHAR(190) NOT NULL, body TEXT NULL, is_active TINYINT(1) NOT NULL DEFAULT 1, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB;
+CREATE TABLE settings (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL DEFAULT 0, setting_key VARCHAR(80) NOT NULL, setting_value TEXT NULL, UNIQUE KEY uq_setting(tenant_id,setting_key)) ENGINE=InnoDB;
+CREATE TABLE audit_logs (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NULL, user_id INT UNSIGNED NULL, action VARCHAR(120) NOT NULL, entity VARCHAR(80) NULL, entity_id INT NULL, ip_address VARCHAR(45) NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_audit_tenant(tenant_id)) ENGINE=InnoDB;
+CREATE TABLE activities (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NULL, user_id INT UNSIGNED NULL, description VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_act_tenant(tenant_id)) ENGINE=InnoDB;
+CREATE TABLE notifications (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, user_id INT UNSIGNED NULL, title VARCHAR(190) NOT NULL, body TEXT NULL, is_read TINYINT(1) NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_notif_tenant(tenant_id), CONSTRAINT fk_notif_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE) ENGINE=InnoDB;
+
+-- ===== Inventory domain tables (all tenant-scoped) =====
+CREATE TABLE warehouses (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, name VARCHAR(120) NOT NULL, location VARCHAR(120) NULL, address VARCHAR(255) NULL, racks VARCHAR(120) NULL, shelves VARCHAR(120) NULL, bins VARCHAR(120) NULL, is_main TINYINT(1) NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_wh_tenant(tenant_id), CONSTRAINT fk_wh_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE categories (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, name VARCHAR(120) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_cat(tenant_id,name), CONSTRAINT fk_cat_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE brands (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, name VARCHAR(120) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_brand(tenant_id,name), CONSTRAINT fk_brand_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE products (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, sku VARCHAR(60) NOT NULL, barcode VARCHAR(40) NULL, name VARCHAR(190) NOT NULL, description TEXT NULL, category_id INT UNSIGNED NULL, brand_id INT UNSIGNED NULL, unit VARCHAR(20) NOT NULL DEFAULT 'pcs', cost_price DECIMAL(12,2) NOT NULL DEFAULT 0, sale_price DECIMAL(12,2) NOT NULL DEFAULT 0, stock_qty DECIMAL(12,2) NOT NULL DEFAULT 0, min_stock DECIMAL(12,2) NOT NULL DEFAULT 5, max_stock DECIMAL(12,2) NOT NULL DEFAULT 100, track_expiry TINYINT(1) NOT NULL DEFAULT 0, status ENUM('active','inactive') NOT NULL DEFAULT 'active', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_product_sku(tenant_id,sku), UNIQUE KEY uq_product_barcode(tenant_id,barcode), INDEX idx_prod_tenant(tenant_id), INDEX idx_prod_stock(stock_qty), CONSTRAINT fk_prod_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_prod_cat FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE SET NULL, CONSTRAINT fk_prod_brand FOREIGN KEY(brand_id) REFERENCES brands(id) ON DELETE SET NULL) ENGINE=InnoDB;
+CREATE TABLE product_warehouse (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL, warehouse_id INT UNSIGNED NOT NULL, quantity DECIMAL(12,2) NOT NULL DEFAULT 0, UNIQUE KEY uq_pw(tenant_id,product_id,warehouse_id), INDEX idx_pw_tenant(tenant_id), CONSTRAINT fk_pw_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_pw_product FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE, CONSTRAINT fk_pw_wh FOREIGN KEY(warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE batches (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL, warehouse_id INT UNSIGNED NOT NULL, batch_no VARCHAR(60) NOT NULL, expiry_date DATE NULL, quantity DECIMAL(12,2) NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_batch(tenant_id,product_id,warehouse_id,batch_no), INDEX idx_batch_expiry(expiry_date), CONSTRAINT fk_batch_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_batch_product FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE, CONSTRAINT fk_batch_wh FOREIGN KEY(warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE stock_movements (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, warehouse_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL, type ENUM('in','out','adjustment','transfer','damage','expiry','return') NOT NULL, quantity DECIMAL(12,2) NOT NULL, reference VARCHAR(80) NULL, note VARCHAR(255) NULL, batch_no VARCHAR(60) NULL, expiry_date DATE NULL, created_by INT UNSIGNED NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_mv_tenant(tenant_id), INDEX idx_mv_product(product_id), INDEX idx_mv_created(created_at), CONSTRAINT fk_mv_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_mv_wh FOREIGN KEY(warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE, CONSTRAINT fk_mv_product FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE, CONSTRAINT fk_mv_user FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL) ENGINE=InnoDB;
+CREATE TABLE suppliers (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, name VARCHAR(150) NOT NULL, contact VARCHAR(100) NULL, email VARCHAR(190) NULL, phone VARCHAR(40) NULL, category VARCHAR(80) NULL, address VARCHAR(255) NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_sup_tenant(tenant_id), CONSTRAINT fk_sup_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE purchases (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, supplier_id INT UNSIGNED NOT NULL, warehouse_id INT UNSIGNED NOT NULL, status ENUM('draft','ordered','approved','partial','received','cancelled') NOT NULL DEFAULT 'ordered', total DECIMAL(12,2) NOT NULL DEFAULT 0, received_at DATETIME NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_po_tenant(tenant_id), CONSTRAINT fk_po_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_po_supplier FOREIGN KEY(supplier_id) REFERENCES suppliers(id), CONSTRAINT fk_po_wh FOREIGN KEY(warehouse_id) REFERENCES warehouses(id)) ENGINE=InnoDB;
+CREATE TABLE purchase_items (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, purchase_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL, quantity DECIMAL(12,2) NOT NULL, received_qty DECIMAL(12,2) NOT NULL DEFAULT 0, unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0, INDEX idx_pi_po(purchase_id), CONSTRAINT fk_pi_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_pi_po FOREIGN KEY(purchase_id) REFERENCES purchases(id) ON DELETE CASCADE, CONSTRAINT fk_pi_product FOREIGN KEY(product_id) REFERENCES products(id)) ENGINE=InnoDB;
+CREATE TABLE supplier_payments (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, supplier_id INT UNSIGNED NOT NULL, purchase_id INT UNSIGNED NULL, amount DECIMAL(12,2) NOT NULL, method VARCHAR(40) NOT NULL DEFAULT 'cash', note VARCHAR(255) NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_sp_tenant(tenant_id), CONSTRAINT fk_sp_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_sp_supplier FOREIGN KEY(supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE, CONSTRAINT fk_sp_po FOREIGN KEY(purchase_id) REFERENCES purchases(id) ON DELETE SET NULL) ENGINE=InnoDB;
+CREATE TABLE purchase_returns (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, purchase_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL, quantity DECIMAL(12,2) NOT NULL, reason VARCHAR(255) NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_prt_tenant(tenant_id), CONSTRAINT fk_prt_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_prt_po FOREIGN KEY(purchase_id) REFERENCES purchases(id) ON DELETE CASCADE, CONSTRAINT fk_prt_product FOREIGN KEY(product_id) REFERENCES products(id)) ENGINE=InnoDB;
+CREATE TABLE customers (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, name VARCHAR(150) NOT NULL, email VARCHAR(190) NULL, phone VARCHAR(40) NULL, address VARCHAR(255) NULL, credit_limit DECIMAL(12,2) NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_cust_tenant(tenant_id), CONSTRAINT fk_cust_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE) ENGINE=InnoDB;
+CREATE TABLE sales (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, customer_id INT UNSIGNED NULL, warehouse_id INT UNSIGNED NOT NULL, status ENUM('draft','confirmed','cancelled') NOT NULL DEFAULT 'draft', payment_status ENUM('unpaid','partial','paid') NOT NULL DEFAULT 'unpaid', subtotal DECIMAL(12,2) NOT NULL DEFAULT 0, tax DECIMAL(12,2) NOT NULL DEFAULT 0, discount DECIMAL(12,2) NOT NULL DEFAULT 0, total DECIMAL(12,2) NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_so_tenant(tenant_id), INDEX idx_so_created(created_at), CONSTRAINT fk_so_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_so_customer FOREIGN KEY(customer_id) REFERENCES customers(id) ON DELETE SET NULL, CONSTRAINT fk_so_wh FOREIGN KEY(warehouse_id) REFERENCES warehouses(id)) ENGINE=InnoDB;
+CREATE TABLE sale_items (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, sale_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL, quantity DECIMAL(12,2) NOT NULL, unit_price DECIMAL(12,2) NOT NULL DEFAULT 0, INDEX idx_si_so(sale_id), CONSTRAINT fk_si_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_si_so FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE CASCADE, CONSTRAINT fk_si_product FOREIGN KEY(product_id) REFERENCES products(id)) ENGINE=InnoDB;
+CREATE TABLE sale_payments (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, sale_id INT UNSIGNED NOT NULL, customer_id INT UNSIGNED NULL, amount DECIMAL(12,2) NOT NULL, method VARCHAR(40) NOT NULL DEFAULT 'cash', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_spt_tenant(tenant_id), CONSTRAINT fk_spt_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_spt_so FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE CASCADE, CONSTRAINT fk_spt_customer FOREIGN KEY(customer_id) REFERENCES customers(id) ON DELETE SET NULL) ENGINE=InnoDB;
+CREATE TABLE sales_returns (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id INT UNSIGNED NOT NULL, sale_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL, quantity DECIMAL(12,2) NOT NULL, reason VARCHAR(255) NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_srt_tenant(tenant_id), CONSTRAINT fk_srt_tenant FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE, CONSTRAINT fk_srt_so FOREIGN KEY(sale_id) REFERENCES sales(id) ON DELETE CASCADE, CONSTRAINT fk_srt_product FOREIGN KEY(product_id) REFERENCES products(id)) ENGINE=InnoDB;
+
+-- ===== Seeds =====
+INSERT INTO roles(id,name,label) VALUES (1,'super_admin','Super Admin'),(2,'owner','Business Owner'),(3,'warehouse_manager','Warehouse Manager'),(4,'stock_manager','Stock Manager'),(5,'sales_manager','Sales Manager'),(6,'purchase_manager','Purchase Manager'),(7,'accountant','Accountant'),(8,'employee','Employee');
+INSERT INTO permissions(id,name,label) VALUES (1,'products.manage','Manage products'),(2,'stock.move','Move stock'),(3,'warehouses.manage','Manage warehouses'),(4,'purchases.manage','Manage purchases'),(5,'sales.manage','Manage sales'),(6,'finance.view','View finance'),(7,'reports.view','View reports'),(8,'settings.manage','Manage settings');
+INSERT INTO role_permissions(role_id,permission_id) SELECT r.id,p.id FROM roles r CROSS JOIN permissions p WHERE r.name IN ('owner');
+INSERT INTO role_permissions(role_id,permission_id) SELECT r.id,p.id FROM roles r JOIN permissions p ON p.name IN ('products.manage','stock.move','warehouses.manage','reports.view') WHERE r.name IN ('warehouse_manager','stock_manager');
+INSERT INTO role_permissions(role_id,permission_id) SELECT r.id,p.id FROM roles r JOIN permissions p ON p.name IN ('products.manage','sales.manage','reports.view') WHERE r.name='sales_manager';
+INSERT INTO role_permissions(role_id,permission_id) SELECT r.id,p.id FROM roles r JOIN permissions p ON p.name IN ('products.manage','purchases.manage','reports.view') WHERE r.name='purchase_manager';
+INSERT INTO role_permissions(role_id,permission_id) SELECT r.id,p.id FROM roles r JOIN permissions p ON p.name IN ('finance.view','reports.view','purchases.manage','sales.manage') WHERE r.name='accountant';
+INSERT INTO plans(id,name,slug,price_monthly,price_yearly,max_products,max_warehouses,max_users,is_active) VALUES
+(1,'Free Trial','trial',0,0,50,1,3,1),(2,'Basic','basic',19,190,500,2,5,1),(3,'Professional','professional',49,490,5000,5,15,1),(4,'Business','business',99,990,20000,10,40,1),(5,'Enterprise','enterprise',249,2490,100000,50,200,1);
+INSERT INTO coupons(code,discount_percent,max_uses,used_count,is_active) VALUES ('WELCOME10',10,100,3,1);
+INSERT INTO tenants(id,name,slug,status) VALUES (1,'Demo Wholesale Co','demo-wholesale','active');
+-- Password hash = bcrypt of "password" (password_verify('password', hash) === true)
+INSERT INTO users(id,tenant_id,name,email,password_hash,role,status,email_verified_at) VALUES
+(1,NULL,'Platform Admin','super@stockpro.test','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','super_admin','active',NOW()),
+(2,1,'Demo Owner','admin@demo.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','owner','active',NOW()),
+(3,1,'Wajid Warehouse','warehouse@demo.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','warehouse_manager','active',NOW()),
+(4,1,'Sana Stock','stock@demo.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','stock_manager','active',NOW()),
+(5,1,'Ali Sales','sales@demo.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','sales_manager','active',NOW()),
+(6,1,'Bilal Purchase','purchase@demo.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','purchase_manager','active',NOW()),
+(7,1,'Ayesha Accounts','accountant@demo.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','accountant','active',NOW()),
+(8,1,'Usman Employee','employee@demo.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','employee','active',NOW());
+INSERT INTO subscriptions(id,tenant_id,plan_id,status,billing_cycle,starts_at,ends_at) VALUES (1,1,3,'active','monthly',NOW(),DATE_ADD(NOW(),INTERVAL 1 MONTH));
+INSERT INTO payments(id,tenant_id,subscription_id,amount,status,method,paid_at) VALUES (1,1,1,49,'paid','card',NOW());
+INSERT INTO invoices(id,tenant_id,payment_id,invoice_number,amount,status) VALUES (1,1,1,'INV-2026-00001',49,'paid');
+INSERT INTO settings(tenant_id,setting_key,setting_value) VALUES (1,'prevent_negative_stock','1'),(1,'company_name','Demo Wholesale Co'),(1,'currency','USD'),(1,'timezone','Asia/Karachi'),(1,'low_stock_threshold','0'),(0,'platform_name','StockPro'),(0,'support_email','support@stockpro.test'),(0,'default_currency','USD');
+INSERT INTO announcements(title,body,is_active) VALUES ('Welcome to StockPro','Track stock by warehouse, batches and expiry — all in one place.',1);
+INSERT INTO support_tickets(tenant_id,user_id,subject,message,status,priority) VALUES (1,2,'Barcode label printing?','Which label sizes are supported for product barcodes?','open','low');
+INSERT INTO notifications(tenant_id,user_id,title,body) VALUES (1,2,'Low stock alert','Protein Bars (SKU-007) is at 10 units, below its minimum of 20.'),(1,2,'Out of stock','Webcam HD (SKU-008) is out of stock.');
+INSERT INTO activities(tenant_id,user_id,description) VALUES (1,2,'Demo inventory seeded with 10 products across 2 warehouses');
+INSERT INTO audit_logs(tenant_id,user_id,action,entity,entity_id) VALUES (1,2,'seed','products',NULL);
+
+INSERT INTO warehouses(id,tenant_id,name,location,address,racks,shelves,bins,is_main) VALUES
+(1,1,'Main Warehouse','Lahore','14 Industrial Estate','A1-A6','S1-S12','B1-B40',1),
+(2,1,'North Branch Warehouse','Rawalpindi','88 Satellite Town','N1-N3','S1-S6','B1-B20',0);
+INSERT INTO categories(id,tenant_id,name) VALUES (1,1,'General'),(2,1,'Electronics'),(3,1,'Accessories'),(4,1,'Food & Beverage');
+INSERT INTO brands(id,tenant_id,name) VALUES (1,1,'Nova'),(2,1,'Orbit'),(3,1,'FreshCo');
+-- Products: stock_qty below equals the SUM of product_warehouse rows and the net of stock_movements.
+INSERT INTO products(id,tenant_id,sku,barcode,name,description,category_id,brand_id,unit,cost_price,sale_price,stock_qty,min_stock,max_stock,track_expiry,status) VALUES
+(1,1,'SKU-001','890000000001','Wireless Mouse','2.4GHz optical mouse',2,1,'pcs',20,35,80,10,100,0,'active'),
+(2,1,'SKU-002','890000000002','Mechanical Keyboard','Hot-swap RGB keyboard',2,1,'pcs',45,79,50,10,80,0,'active'),
+(3,1,'SKU-003','890000000003','USB-C Cable 1m','Braided fast-charge cable',3,2,'pcs',5,12,150,20,300,0,'active'),
+(4,1,'SKU-004','890000000004','Laptop Stand','Aluminium adjustable stand',3,2,'pcs',25,49,24,8,50,0,'active'),
+(5,1,'SKU-005','890000000005','Noise-Cancel Headphones','Over-ear ANC headphones',2,1,'pcs',60,119,20,6,40,0,'active'),
+(6,1,'SKU-006','890000000006','Energy Drink 12-pack','Carbonated energy drink case',4,3,'case',12,22,40,15,120,1,'active'),
+(7,1,'SKU-007','890000000007','Protein Bars Box','12-bar protein box',4,3,'box',8,16,10,20,100,1,'active'),
+(8,1,'SKU-008','890000000008','Webcam HD','1080p USB webcam',2,1,'pcs',30,59,0,5,60,0,'active'),
+(9,1,'SKU-009','890000000009','LED Desk Lamp','Dimmable desk lamp',2,2,'pcs',18,34,22,8,60,0,'active'),
+(10,1,'SKU-010','890000000010','Notebook A5','Ruled A5 notebook',1,2,'pcs',2,5,200,50,500,0,'active');
+INSERT INTO product_warehouse(tenant_id,product_id,warehouse_id,quantity) VALUES
+(1,1,1,60),(1,1,2,20),(1,2,1,35),(1,2,2,15),(1,3,1,120),(1,3,2,30),(1,4,1,24),(1,5,1,14),(1,5,2,6),(1,6,1,40),(1,7,1,10),(1,8,1,0),(1,9,1,18),(1,9,2,4),(1,10,1,200);
+INSERT INTO batches(tenant_id,product_id,warehouse_id,batch_no,expiry_date,quantity) VALUES
+(1,6,1,'B-DRINK-01',DATE_ADD(CURDATE(),INTERVAL 20 DAY),40),
+(1,7,1,'B-BAR-01',DATE_ADD(CURDATE(),INTERVAL 10 DAY),10);
+INSERT INTO suppliers(id,tenant_id,name,contact,email,phone,category,address) VALUES
+(1,1,'TechSource Supplies','Imran Sheikh','imran@techsource.test','+92-300-1111111','Electronics','Lahore'),
+(2,1,'FreshCo Distribution','Maria Khan','maria@freshco.test','+92-300-2222222','Food & Beverage','Karachi'),
+(3,1,'Orbit Trading','Chen Wei','chen@orbit.test','+92-300-3333333','Accessories','Rawalpindi');
+INSERT INTO purchases(id,tenant_id,supplier_id,warehouse_id,status,total,received_at) VALUES
+(1,1,1,1,'received',7931,NOW()),(2,1,1,1,'ordered',1150,NULL);
+INSERT INTO purchase_items(tenant_id,purchase_id,product_id,quantity,received_qty,unit_cost) VALUES
+(1,1,1,65,65,20),(1,1,2,53,53,45),(1,1,3,150,150,5),(1,1,4,24,24,25),(1,1,5,20,20,60),(1,1,6,40,40,12),(1,1,7,15,15,8),(1,1,8,10,10,30),(1,1,9,22,22,18),(1,1,10,200,200,2),
+(1,2,1,20,0,20),(1,2,8,25,0,30);
+INSERT INTO supplier_payments(tenant_id,supplier_id,purchase_id,amount,method,note) VALUES (1,1,1,5000,'bank','Part payment for PO #1');
+INSERT INTO customers(id,tenant_id,name,email,phone,address,credit_limit) VALUES
+(1,1,'City Retail Mart','ops@citymart.test','+92-321-4444444','Blue Area, Islamabad',5000),
+(2,1,'Campus Store','store@campus.test','+92-321-5555555','University Road',3000),
+(3,1,'Hotel Grand Timepieces','gm@grandtimepieces.test','+92-321-6666666','Mall Road',10000);
+INSERT INTO sales(id,tenant_id,customer_id,warehouse_id,status,payment_status,subtotal,tax,discount,total) VALUES
+(1,1,1,1,'confirmed','paid',175,0,0,175),
+(2,1,2,1,'confirmed','partial',827,0,0,827),
+(3,1,3,1,'draft','unpaid',50,0,0,50);
+INSERT INTO sale_items(tenant_id,sale_id,product_id,quantity,unit_price) VALUES
+(1,1,1,5,35),(1,2,2,3,79),(1,2,8,10,59),(1,3,10,10,5);
+INSERT INTO sale_payments(tenant_id,sale_id,customer_id,amount,method) VALUES (1,1,1,175,'card'),(1,2,2,400,'cash');
+-- Movement history: per product+warehouse the SUM of quantities equals product_warehouse quantities above.
+INSERT INTO stock_movements(tenant_id,warehouse_id,product_id,type,quantity,reference,note,batch_no,expiry_date,created_by) VALUES
+(1,1,1,'in',65,'PO #1','Goods received',NULL,NULL,2),
+(1,1,1,'out',-5,'SO #1','Sale confirmed (stock-out)',NULL,NULL,2),
+(1,2,1,'in',20,'PO #1','Goods received (branch allocation)',NULL,NULL,2),
+(1,1,2,'in',38,'PO #1','Goods received',NULL,NULL,2),
+(1,1,2,'out',-3,'SO #2','Sale confirmed (stock-out)',NULL,NULL,2),
+(1,2,2,'in',15,'PO #1','Goods received (branch allocation)',NULL,NULL,2),
+(1,1,3,'in',120,'PO #1','Goods received',NULL,NULL,2),
+(1,2,3,'in',30,'PO #1','Goods received (branch allocation)',NULL,NULL,2),
+(1,1,4,'in',24,'PO #1','Goods received',NULL,NULL,2),
+(1,1,5,'in',14,'PO #1','Goods received',NULL,NULL,2),
+(1,2,5,'in',6,'PO #1','Goods received (branch allocation)',NULL,NULL,2),
+(1,1,6,'in',40,'PO #1','Goods received','B-DRINK-01',DATE_ADD(CURDATE(),INTERVAL 20 DAY),2),
+(1,1,7,'in',15,'PO #1','Goods received','B-BAR-01',DATE_ADD(CURDATE(),INTERVAL 10 DAY),2),
+(1,1,7,'damage',-5,'damage','Crushed boxes written off',NULL,NULL,2),
+(1,1,8,'in',10,'PO #1','Goods received',NULL,NULL,2),
+(1,1,8,'out',-10,'SO #2','Sale confirmed (stock-out)',NULL,NULL,2),
+(1,1,9,'in',18,'PO #1','Goods received',NULL,NULL,2),
+(1,2,9,'in',4,'PO #1','Goods received (branch allocation)',NULL,NULL,2),
+(1,1,10,'in',200,'PO #1','Goods received',NULL,NULL,2);
